@@ -1,238 +1,343 @@
 /**
  * EduSmart Data & Storage Management
- * Handles local storage persistence and mock data initialization.
+ * Populate rich seed data for LKPD, Latihan Soal, Remedial, Evaluasi, and Submissions.
  */
 
-// Storage Keys Constants
 const KEYS = {
     USERS: 'edusmart_users',
     SUBJECTS: 'edusmart_subjects',
     MATERIALS: 'edusmart_materials',
+    LKPD: 'edusmart_lkpd',
     EXERCISES: 'edusmart_exercises',
-    QUIZZES: 'edusmart_quizzes',
+    REMEDIAL: 'edusmart_remedial',
+    EVALUATION: 'edusmart_evaluation',
     SUBMISSIONS: 'edusmart_submissions',
-    CURRENT_USER: 'edusmart_current_user',
-    STUDENTS: 'edusmart_students'
+    CURRENT_USER: 'edusmart_current_user'
 };
 
-// Default Mock Data
+// Rich Seed Data
 const MOCK_DATA = {
-    // Users: Admin/Guru and Students
     users: [
         { id: 'usr-1', username: 'guru', name: 'Bpk. Hermawan, S.Pd.', role: 'guru', password: 'password123' },
         { id: 'usr-2', username: 'siswa', name: 'Rian Hidayat', role: 'siswa', password: 'password123' },
         { id: 'usr-3', username: 'siti', name: 'Siti Rahma', role: 'siswa', password: 'password123' },
-        { id: 'usr-4', username: 'budi', name: 'Budi Santoso', role: 'siswa', password: 'password123' }
+        { id: 'usr-4', username: 'budi', name: 'Budi Santoso', role: 'siswa', password: 'password123' },
+        { id: 'usr-5', username: 'anisa', name: 'Anisa Putri', role: 'siswa', password: 'password123' },
+        { id: 'usr-6', username: 'doni', name: 'Doni Pratama', role: 'siswa', password: 'password123' }
     ],
-    // Subjects
     subjects: [
-        { id: 'subj-math', name: 'Matematika' },
+        { id: 'subj-math', name: 'Matematika Aljabar' },
         { id: 'subj-science', name: 'Ilmu Pengetahuan Alam (IPA)' },
         { id: 'subj-english', name: 'Bahasa Inggris' }
     ],
-    // LKP / Materi (Lembar Kerja / Bahan Ajar)
-    materials: [
+    // 1. LKPD (Lembar Kerja Peserta Didik)
+    lkpd: [
         {
-            id: 'mat-1',
+            id: 'lkpd-1',
             subjectId: 'subj-math',
-            title: 'Pengenalan Aljabar Dasar',
-            description: 'Mempelajari konsep variabel, konstanta, koefisien, dan operasi hitung aljabar sederhana.',
-            content: `<h3>Pendahuluan Aljabar</h3>
-            <p>Aljabar adalah cabang matematika yang menggunakan simbol-simbol (biasanya huruf seperti x, y, z) untuk mewakili bilangan atau nilai yang belum diketahui. Ini membantu kita memecahkan masalah matematika yang kompleks secara lebih mudah.</p>
-            
-            <h3>Unsur-unsur Aljabar</h3>
-            <p>Perhatikan bentuk aljabar berikut: <strong>3x + 5</strong></p>
-            <ul>
-                <li><strong>Variabel:</strong> Simbol/huruf yang mewakili suatu nilai. Pada contoh di atas, <strong>x</strong> adalah variabelnya.</li>
-                <li><strong>Koefisien:</strong> Angka yang mengalikan variabel. Angka <strong>3</strong> di depan x adalah koefisien.</li>
-                <li><strong>Konstanta:</strong> Nilai tetap yang tidak memiliki variabel. Angka <strong>5</strong> adalah konstantanya.</li>
-                <li><strong>Suku:</strong> Bagian dari bentuk aljabar yang dipisahkan oleh operasi penjumlahan atau pengurangan. Bentuk 3x + 5 terdiri dari dua suku, yaitu 3x dan 5.</li>
-            </ul>`,
-            author: 'Bpk. Hermawan, S.Pd.',
-            createdAt: '2026-08-20T08:00:00Z',
-            readBy: ['usr-2', 'usr-3']
+            title: 'LKPD 1: Eksplorasi Model Aljabar dan Persamaan Linear',
+            description: 'Lembar Kerja Eksplorasi Mandiri. Kerjakan soal dengan Teks Uraian atau Unggah Foto lembar kerja tulisan tangan Anda.',
+            questions: [
+                {
+                    id: 'qlkpd-1-1',
+                    questionText: 'Jelaskan perbedaan antara variabel, koefisien, dan konstanta pada bentuk aljabar 4x² - 7x + 12! Berikan contoh penerapannya dalam kehidupan sehari-hari.',
+                    sampleAnswer: 'Variabel = huruf (x), Koefisien = angka pengali (4 dan -7), Konstanta = nilai tetap (12).'
+                },
+                {
+                    id: 'qlkpd-1-2',
+                    questionText: 'Seorang pedagang membeli 5 karung beras seharga Rp x per karung, lalu mendapatkan potongan diskon Rp 50.000. Tuliskan bentuk aljabar pembayaran dan foto lembar kerja corat-coret Anda!',
+                    sampleAnswer: 'Bentuk Aljabar = 5x - 50.000'
+                }
+            ]
         },
         {
-            id: 'mat-2',
+            id: 'lkpd-2',
             subjectId: 'subj-science',
-            title: 'Sistem Pencernaan Manusia',
-            description: 'Memahami organ pencernaan utama, kelenjar pencernaan, dan proses pencernaan mekanik dan kimiawi.',
-            content: `<h3>Sistem Pencernaan Manusia</h3>
-            <p>Makanan yang kita makan harus dipecah menjadi molekul yang lebih kecil agar dapat diserap oleh sel-sel tubuh kita. Proses ini dilakukan oleh sistem pencernaan.</p>
-            
-            <h3>Organ Pencernaan Utama</h3>
-            <ol>
-                <li><strong>Mulut:</strong> Pencernaan dimulai di sini (mekanik dan kimiawi).</li>
-                <li><strong>Kerongkongan (Esofagus):</strong> Makanan didorong ke lambung melalui gerakan <strong>peristaltik</strong>.</li>
-                <li><strong>Lambung:</strong> Memecah makanan dengan asam lambung (HCl) dan enzim Pepsin.</li>
-                <li><strong>Usus Halus:</strong> Di sini terjadi pencernaan kimiawi akhir dan <strong>penyerapan sari makanan</strong>.</li>
-            </ol>`,
-            author: 'Bpk. Hermawan, S.Pd.',
-            createdAt: '2026-08-22T09:30:00Z',
-            readBy: ['usr-2']
+            title: 'LKPD 2: Pengamatan Organ & Enzim Pencernaan Manusia',
+            description: 'LKPD Praktikum Biologi. Amati organ pencernaan dan tuliskan penjelasan lengkap atau unggah foto hasil ringkasan.',
+            questions: [
+                {
+                    id: 'qlkpd-2-1',
+                    questionText: 'Sebutkan 3 enzim utama yang dihasilkan organ lambung beserta fungsi masing-masing dalam mencerna zat makanan!',
+                    sampleAnswer: 'Pepsin (memecah protein), Renin (menggumpalkan susu), HCl (membunuh kuman dan mengaktifkan pepsin).'
+                },
+                {
+                    id: 'qlkpd-2-2',
+                    questionText: 'Uraikan perbedaan mekanisme antara pencernaan mekanik dan pencernaan kimiawi yang terjadi pada organ mulut!',
+                    sampleAnswer: 'Pencernaan mekanik dikunyah oleh gigi, pencernaan kimiawi dibantu enzim ptialin ludah.'
+                }
+            ]
+        },
+        {
+            id: 'lkpd-3',
+            subjectId: 'subj-science',
+            title: 'LKPD 3: Analisis Hukum Gerak Newton & Gaya Fisika',
+            description: 'LKPD Fisika Terapan. Selesaikan analisis fenomena gerak dan tunjukkan rumus perhitungan dalam foto/teks.',
+            questions: [
+                {
+                    id: 'qlkpd-3-1',
+                    questionText: 'Jelaskan bunyi Hukum I Newton (Inersia) dan berikan contoh mengapa penumpang mobil terdorong ke depan saat pengereman mendadak!',
+                    sampleAnswer: 'Benda cenderung mempertahankan keadaan diam/bergerak lurus beraturan jika gaya total sama dengan nol.'
+                }
+            ]
         }
     ],
-    // Latihan Soal
+    // 2. Latihan Soal (with KKM criteria)
     exercises: [
         {
             id: 'ex-1',
             subjectId: 'subj-math',
-            title: 'Latihan Operasi Aljabar Sederhana',
-            description: 'Uji pemahaman Anda tentang penggabungan suku-suku sejenis dalam aljabar.',
+            title: 'Latihan Soal 1: Operasi Suku Aljabar & Substitusi',
+            description: 'Latihan Pemahaman Konsep Matematika (KKM: 75). Nilai di bawah KKM otomatis merujuk ke Modul Remedial.',
+            kkm: 75,
             questions: [
                 {
                     id: 'qex-1-1',
-                    type: 'text',
-                    question: 'Sederhanakan bentuk aljabar berikut: 5x + 3y - 2x + 4y',
-                    options: [
-                        '7x + 7y',
-                        '3x + 7y',
-                        '3x - 1y',
-                        '7x - y'
-                    ],
-                    correctIndex: 1,
-                    explanation: 'Kumpulkan suku-suku yang sejenis: (5x - 2x) + (3y + 4y) = 3x + 7y.'
+                    questionText: 'Sederhanakanlah bentuk aljabar berikut: (6a + 8b - 3) + (2a - 5b + 9). Jelaskan langkah pengelompokan suku sejenisnya!',
+                    sampleAnswer: 'Kelompokkan suku sejenis: (6a + 2a) + (8b - 5b) + (-3 + 9) = 8a + 3b + 6'
                 },
                 {
                     id: 'qex-1-2',
-                    type: 'text',
-                    question: 'Tentukan konstanta dari bentuk aljabar: 2x² - 5x + 9',
-                    options: [
-                        '2',
-                        '-5',
-                        '9',
-                        'x'
-                    ],
-                    correctIndex: 2,
-                    explanation: 'Konstanta adalah suku yang berdiri sendiri tanpa variabel. Pada bentuk tersebut nilainya adalah 9.'
-                }
-            ]
-        }
-    ],
-    // Quizzes
-    quizzes: [
-        {
-            id: 'quiz-1',
-            subjectId: 'subj-math',
-            title: 'Ujian Harian: Aljabar Dasar',
-            description: 'Evaluasi formal pemahaman materi aljabar dasar. Kerjakan secara mandiri!',
-            duration: 10,
-            questions: [
-                {
-                    id: 'qqz-1-1',
-                    type: 'text',
-                    question: 'Nilai dari bentuk aljabar 4a - 3b jika a = 5 dan b = 2 adalah...',
-                    options: ['14', '20', '6', '12'],
-                    correctIndex: 0,
-                    explanation: 'Substitusikan nilai a dan b: 4(5) - 3(2) = 20 - 6 = 14.'
-                },
-                {
-                    id: 'qqz-1-2',
-                    type: 'text',
-                    question: 'Berapakah koefisien dari y² pada bentuk aljabar: 3x + 2y² - 5y + 1?',
-                    options: ['3', '2', '-5', '1'],
-                    correctIndex: 1,
-                    explanation: 'Koefisien adalah angka pengali di depan variabel y² yaitu 2.'
-                },
-                {
-                    id: 'qqz-1-3',
-                    type: 'text',
-                    question: 'Hasil penyederhanaan dari (3a + 2b) - (a - 5b) adalah...',
-                    options: ['2a - 3b', '2a + 7b', '4a + 7b', '4a - 3b'],
-                    correctIndex: 1,
-                    explanation: 'Lakukan pengurangan suku sejenis: 3a - a + 2b - (-5b) = 2a + 7b.'
+                    questionText: 'Jika nilai x = 4 dan y = -2, tentukan nilai dari ekspresi 3x² - 2y + 5! Ketik jawaban teks atau foto lembar pengerjaan Anda.',
+                    sampleAnswer: 'Substitusi: 3(4)² - 2(-2) + 5 = 48 + 4 + 5 = 57'
                 }
             ]
         },
         {
-            id: 'quiz-2',
+            id: 'ex-2',
             subjectId: 'subj-science',
-            title: 'Kuis Interaktif: Visual & Ketangkasan Game',
-            description: 'Kuis spesial yang menggabungkan soal diagram gambar, video penjelasan, dan game ketangkasan berjalan.',
-            duration: 12,
+            title: 'Latihan Soal 2: Sistem Pencernaan & Nutrisi Tubuh',
+            description: 'Latihan Harian IPA Biologi (KKM: 75). Koreksi AI instan per-soal.',
+            kkm: 75,
             questions: [
                 {
-                    id: 'qqz-2-1',
-                    type: 'image',
-                    mediaUrl: 'diagram-lambung',
-                    question: 'Perhatikan diagram organ pencernaan lambung di atas. Di lambung, proses pemecahan protein menjadi pepton dilakukan oleh asam dan enzim tertentu. Manakah enzim lambung yang berfungsi memecah protein tersebut?',
-                    options: [
-                        'Enzim Amilase',
-                        'Enzim Pepsin',
-                        'Enzim Lipase',
-                        'Cairan Empedu'
-                    ],
-                    correctIndex: 1,
-                    explanation: 'Lambung menghasilkan asam lambung (HCl) dan enzim Pepsin. Pepsin berfungsi mengubah protein menjadi senyawa pepton yang lebih sederhana.'
+                    id: 'qex-2-1',
+                    questionText: 'Jelaskan alur pencernaan karbohidrat mulai dari organ mulut hingga diserap oleh pembuluh darah di usus halus!',
+                    sampleAnswer: 'Mulut (enzim ptialin) -> Usus halus (enzim amilase pankreas) -> diserap vili usus halus.'
                 },
                 {
-                    id: 'qqz-2-2',
-                    type: 'video',
-                    mediaUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-                    question: 'Tonton video demonstrasi proses pembakaran di atas. Mengapa api dapat padam saat udara di sekitarnya diisolasi/ditutup rapat?',
-                    options: [
-                        'Karena suhu api menurun secara drastis',
-                        'Karena pasokan gas oksigen (O₂) habis terkonsumsi',
-                        'Karena api tidak mendapatkan gas nitrogen (N₂)',
-                        'Karena wadah penutup menghasilkan uap air pembakar'
-                    ],
-                    correctIndex: 1,
-                    explanation: 'Proses pembakaran membutuhkan oksigen sebagai oksidator. Ketika wadah ditutup rapat, pasokan oksigen terhenti dan api akan padam setelah oksigen di dalam wadah habis.'
-                },
+                    id: 'qex-2-2',
+                    questionText: 'Apa dampak biologis bagi tubuh jika fungsi usus besar mengalami gangguan peradangan (kolitis)? Jelaskan secara mendalam.',
+                    sampleAnswer: 'Penyerapan air terganggu, menyebabkan kotoran cair (diare) dan risiko dehidrasi.'
+                }
+            ]
+        },
+        {
+            id: 'ex-3',
+            subjectId: 'subj-science',
+            title: 'Latihan Soal 3: Gaya Terapan & Pesawat Sederhana',
+            description: 'Latihan Fisika Terapan (KKM: 80). Uji perhitungan keuntungan mekanis.',
+            kkm: 80,
+            questions: [
                 {
-                    id: 'qqz-2-3',
-                    type: 'game',
-                    gameType: 'jumper',
-                    question: 'Tantangan Fisika Ketangkasan: Mainkan game "EduJumper" di atas. Lompati rintangan balok dengan tombol SPACE atau klik layar. Lompati minimal 3 rintangan untuk membuktikan ketangkasan waktu Anda!',
-                    options: [
-                        'Gagal (Lompatan kurang dari 3)',
-                        'Berhasil (Lompatan minimal 3 atau lebih)'
-                    ],
-                    correctIndex: 1,
-                    explanation: 'Game EduJumper mengukur waktu reaksi (reaction time) yang merupakan konsep fisika koordinasi motorik. Lompatan minimal 3 kali membuktikan tingkat respons refleks yang baik.'
+                    id: 'qex-3-1',
+                    questionText: 'Sebuah tuas memiliki lengan beban 50 cm dan lengan kuas 200 cm. Hitunglah keuntungan mekanis tuas tersebut dan sertakan gambar/foto corat-coret Anda!',
+                    sampleAnswer: 'Keuntungan Mekanis (KM) = Lengan Kuasa / Lengan Beban = 200 / 50 = 4.'
                 }
             ]
         }
     ],
-    // Submissions
+    // 3. Remedial (Unlocked automatically when Exercise score < KKM)
+    remedial: [
+        {
+            id: 'rem-ex-1',
+            exerciseId: 'ex-1',
+            subjectId: 'subj-math',
+            title: 'Program Remedial 1: Penguatan Konsep Suku Aljabar',
+            description: 'Soal Remedial Penguatan khusus siswa yang nilai Latihan Soal 1 di bawah KKM (75). Kerjakan ulang untuk tuntas KKM.',
+            questions: [
+                {
+                    id: 'qrem-1-1',
+                    questionText: 'Remedial Soal 1: Sederhanakan bentuk (4x + 3y) - (2x - 5y). Ingat perhatikan tanda minus di depan kurung!',
+                    sampleAnswer: '4x - 2x + 3y - (-5y) = 2x + 8y'
+                },
+                {
+                    id: 'qrem-1-2',
+                    questionText: 'Remedial Soal 2: Hitunglah nilai dari 2a + 3b jika nilai a = 3 dan b = 4. Tunjukkan jalan perhitungan Anda.',
+                    sampleAnswer: '2(3) + 3(4) = 6 + 12 = 18'
+                }
+            ]
+        },
+        {
+            id: 'rem-ex-2',
+            exerciseId: 'ex-2',
+            subjectId: 'subj-science',
+            title: 'Program Remedial 2: Penguatan Organ & Enzim Pencernaan',
+            description: 'Soal Remedial IPA Biologi khusus siswa dengan nilai di bawah KKM 75.',
+            questions: [
+                {
+                    id: 'qrem-2-1',
+                    questionText: 'Remedial Soal 1: Tulislah urutan kronologis organ pencernaan makanan dari mulut hingga sisa makanan dibuang melalui anus!',
+                    sampleAnswer: 'Mulut -> Kerongkongan -> Lambung -> Usus Halus -> Usus Besar -> Anus.'
+                }
+            ]
+        }
+    ],
+    // 4. Evaluasi Ujian Akhir
+    evaluation: [
+        {
+            id: 'eval-1',
+            subjectId: 'subj-math',
+            title: 'Evaluasi Akhir BAB 1: Aljabar & Matematika Terapan',
+            description: 'Ujian Evaluasi Akhir Semester. Kerjakan seluruh soal uraian dengan jujur dan lengkap.',
+            duration: 30,
+            questions: [
+                {
+                    id: 'qeval-1-1',
+                    questionText: 'Jabarkan dan sederhanakan bentuk perkalian aljabar berikut: (2x + 3)(x - 4)!',
+                    sampleAnswer: '2x² - 8x + 3x - 12 = 2x² - 5x - 12'
+                },
+                {
+                    id: 'qeval-1-2',
+                    questionText: 'Sebuah taman berbentuk persegi panjang memiliki panjang (3x + 2) meter dan lebar (x - 1) meter. Tentukan rumus keliling taman tersebut!',
+                    sampleAnswer: 'Keliling = 2(P + L) = 2(3x + 2 + x - 1) = 2(4x + 1) = 8x + 2 meter'
+                }
+            ]
+        },
+        {
+            id: 'eval-2',
+            subjectId: 'subj-science',
+            title: 'Evaluasi Akhir BAB 2: Biologi Pencernaan & Nutrisi Manusia',
+            description: 'Evaluasi Komprehensif IPA Biologi.',
+            duration: 40,
+            questions: [
+                {
+                    id: 'qeval-2-1',
+                    questionText: 'Jelaskan perbedaan fungsi antara usus halus dan usus besar dalam penyerapan nutrisi dan air!',
+                    sampleAnswer: 'Usus halus menyerap sari nutrisi, usus besar menyerap air dan membusukkan sisa makanan.'
+                }
+            ]
+        }
+    ],
+    // 5. Populated Submissions (Sample data in table)
     submissions: [
         {
-            id: 'sub-1',
-            quizId: 'quiz-1',
-            studentId: 'usr-3',
-            studentName: 'Siti Rahma',
-            score: 100,
-            answers: [0, 1, 1],
-            completedAt: '2026-08-25T14:20:00Z',
-            status: 'selesai_diperiksa',
-            teacherNotes: 'Luar biasa, Siti! Semua jawaban tepat dan pemahaman konsep aljabar Anda sangat mantap. Pertahankan terus!',
-            aiReview: `<h4><i class="fa-solid fa-square-poll-vertical"></i> Evaluasi Utama</h4>
-            <p>Halo Siti Rahma! Selamat, Anda meraih <strong>Skor Sempurna (100/100)</strong> pada Kuis Aljabar Dasar ini. Hasil ini menunjukkan pemahaman yang luar biasa terhadap seluruh materi yang diujikan.</p>`
-        },
-        {
-            id: 'sub-2',
-            quizId: 'quiz-1',
+            id: 'sub-demo-1',
+            moduleType: 'exercise',
+            moduleId: 'ex-1',
             studentId: 'usr-4',
             studentName: 'Budi Santoso',
-            score: 66,
-            answers: [2, 1, 0], // Incorrect for Q1 and Q3
+            overallScore: 60,
+            kkm: 75,
+            isBelowKKM: true,
+            answers: [
+                { questionId: 'qex-1-1', type: 'text', content: '6a + 2b + 6 (Koreksi: ada kekeliruan pengurangan 8b - 5b)' },
+                { questionId: 'qex-1-2', type: 'text', content: '3(4)^2 - 2(-2) + 5 = 48 + 4 + 5 = 57 (Benar)' }
+            ],
+            perQuestionReviews: [
+                {
+                    questionId: 'qex-1-1',
+                    score: 40,
+                    aiReview: '🤖 <b>Koreksi AI:</b> Pengelompokan suku b kurang teliti. (8b - 5b) seharusnya bernilai +3b, bukan +2b. Skor: 40/100.'
+                },
+                {
+                    questionId: 'qex-1-2',
+                    score: 80,
+                    aiReview: '🤖 <b>Koreksi AI:</b> Perhitungan substitusi nilai x = 4 dan y = -2 sudah sangat akurat. Skor: 80/100.'
+                }
+            ],
+            completedAt: '2026-08-25T14:20:00Z',
+            status: 'selesai_diperiksa',
+            teacherNotes: 'Budi, perhatikan tanda positif/negatif pada suku sejenis ya! Silakan ambil Modul Remedial yang telah terbuka.'
+        },
+        {
+            id: 'sub-demo-2',
+            moduleType: 'lkpd',
+            moduleId: 'lkpd-1',
+            studentId: 'usr-3',
+            studentName: 'Siti Rahma',
+            overallScore: 95,
+            kkm: 75,
+            isBelowKKM: false,
+            answers: [
+                { questionId: 'qlkpd-1-1', type: 'text', content: 'Variabel adalah simbol huruf (x). Koefisien angka pengali (4 dan -7). Konstanta nilai tetap (12). Contoh: menghitung harga belanjaan.' },
+                { questionId: 'qlkpd-1-2', type: 'photo', photoUrl: 'https://images.unsplash.com/photo-1596495578065-6e0763fa1178?w=500&auto=format&fit=crop&q=60' }
+            ],
+            perQuestionReviews: [
+                {
+                    questionId: 'qlkpd-1-1',
+                    score: 95,
+                    aiReview: '🤖 <b>Koreksi AI:</b> Penjelasan sangat komprehensif dan tepat. Penggunaan contoh nyata sangat baik. Skor: 95/100.'
+                },
+                {
+                    questionId: 'qlkpd-1-2',
+                    score: 95,
+                    aiReview: '🤖 <b>Koreksi AI (Analisis Foto):</b> Tulisan tangan matematika terdeteksi sangat rapi. Langkah perumusan 5x - 50.000 sempurna. Skor: 95/100.'
+                }
+            ],
             completedAt: '2026-08-26T10:15:00Z',
+            status: 'selesai_diperiksa',
+            teacherNotes: 'Sangat luar biasa, Siti! Struktur aljabar dan foto corat-coret Anda sangat lengkap dan rapi.'
+        },
+        {
+            id: 'sub-demo-3',
+            moduleType: 'exercise',
+            moduleId: 'ex-2',
+            studentId: 'usr-2',
+            studentName: 'Rian Hidayat',
+            overallScore: 88,
+            kkm: 75,
+            isBelowKKM: false,
+            answers: [
+                { questionId: 'qex-2-1', type: 'text', content: 'Pencernaan karbohidrat dimulai di mulut dengan enzim ptialin mengubah amilum jadi maltosa, lalu di usus halus dipecah amilase dan diserap vili.' },
+                { questionId: 'qex-2-2', type: 'text', content: 'Usus besar menyerap air. Jika radang, penyerapan air terganggu sehingga diare.' }
+            ],
+            perQuestionReviews: [
+                {
+                    questionId: 'qex-2-1',
+                    score: 90,
+                    aiReview: '🤖 <b>Koreksi AI:</b> Alur organ dan peranan enzim ptialin serta amilase dijelaskan secara tepat. Skor: 90/100.'
+                },
+                {
+                    questionId: 'qex-2-2',
+                    score: 86,
+                    aiReview: '🤖 <b>Koreksi AI:</b> Analisis gangguan fungsi usus besar tepat dan sistematis. Skor: 86/100.'
+                }
+            ],
+            completedAt: '2026-08-27T09:30:00Z',
             status: 'belum_diperiksa',
-            teacherNotes: '',
-            aiReview: `<h4><i class="fa-solid fa-square-poll-vertical"></i> Evaluasi Utama</h4>
-            <p>Halo Budi Santoso! Anda menyelesaikan kuis dengan skor <strong>66/100</strong>. Anda sudah menguasai beberapa bagian dasar, namun terdapat kendala pada perhitungan substitusi dan pengurangan suku sejenis.</p>`
+            teacherNotes: ''
+        },
+        {
+            id: 'sub-demo-4',
+            moduleType: 'remedial',
+            moduleId: 'rem-ex-1',
+            studentId: 'usr-4',
+            studentName: 'Budi Santoso',
+            overallScore: 85,
+            kkm: 75,
+            isBelowKKM: false,
+            answers: [
+                { questionId: 'qrem-1-1', type: 'text', content: '4x - 2x + 3y - (-5y) = 2x + 8y (Benar)' },
+                { questionId: 'qrem-1-2', type: 'text', content: '2(3) + 3(4) = 6 + 12 = 18 (Benar)' }
+            ],
+            perQuestionReviews: [
+                {
+                    questionId: 'qrem-1-1',
+                    score: 85,
+                    aiReview: '🤖 <b>Koreksi AI (Remedial):</b> Bagus! Budi telah memahami perubahan tanda minus (-) pada suku 5y menjadi +5y. Skor: 85/100.'
+                },
+                {
+                    questionId: 'qrem-1-2',
+                    score: 85,
+                    aiReview: '🤖 <b>Koreksi AI (Remedial):</b> Substitusi nilai a dan b tepat. Skor: 85/100.'
+                }
+            ],
+            completedAt: '2026-08-28T11:00:00Z',
+            status: 'selesai_diperiksa',
+            teacherNotes: 'Kerja bagus Budi! Nilai Remedial Anda kini telah TUNTAS KKM (85 >= 75).'
         }
     ]
 };
 
-// LocalStorage helpers
+// LocalStorage Helper wrapper
 const db = {
     get: (key) => {
         try {
             const data = localStorage.getItem(key);
             return data ? JSON.parse(data) : null;
         } catch (e) {
-            console.error('Error reading localStorage', e);
+            console.error('Error reading localStorage key', key, e);
             return null;
         }
     },
@@ -240,41 +345,27 @@ const db = {
         try {
             localStorage.setItem(key, JSON.stringify(val));
         } catch (e) {
-            console.error('Error writing localStorage', e);
+            console.error('Error writing localStorage key', key, e);
         }
     }
 };
 
-/**
- * Initialize Database with default mock data if not set
- */
+// Data Initializer (Force update seed data so user sees populated tables instantly)
 function initializeData() {
-    if (!db.get(KEYS.USERS)) {
-        db.set(KEYS.USERS, MOCK_DATA.users);
-    }
-    if (!db.get(KEYS.SUBJECTS)) {
-        db.set(KEYS.SUBJECTS, MOCK_DATA.subjects);
-    }
-    if (!db.get(KEYS.MATERIALS)) {
-        db.set(KEYS.MATERIALS, MOCK_DATA.materials);
-    }
-    if (!db.get(KEYS.EXERCISES)) {
-        db.set(KEYS.EXERCISES, MOCK_DATA.exercises);
-    }
-    
-    // Always force update quizzes to include the interactive quiz for demo
-    db.set(KEYS.QUIZZES, MOCK_DATA.quizzes);
-    
-    // Always force update submissions for demo structure compatibility
-    if (!db.get(KEYS.SUBMISSIONS)) {
-        db.set(KEYS.SUBMISSIONS, MOCK_DATA.submissions);
-    }
+    db.set(KEYS.USERS, MOCK_DATA.users);
+    db.set(KEYS.SUBJECTS, MOCK_DATA.subjects);
+    db.set(KEYS.LKPD, MOCK_DATA.lkpd);
+    db.set(KEYS.EXERCISES, MOCK_DATA.exercises);
+    db.set(KEYS.REMEDIAL, MOCK_DATA.remedial);
+    db.set(KEYS.EVALUATION, MOCK_DATA.evaluation);
+    db.set(KEYS.SUBMISSIONS, MOCK_DATA.submissions);
 }
 
-// Ensure database is initialized
 initializeData();
 
-// Core Data API Functions
+/**
+ * DataStore Interface API
+ */
 const DataStore = {
     // Auth & Users
     loginUser: (username, password) => {
@@ -282,213 +373,146 @@ const DataStore = {
         const user = users.find(u => u.username.toLowerCase() === username.toLowerCase() && u.password === password);
         if (user) {
             db.set(KEYS.CURRENT_USER, user);
+            if (typeof SupabaseStore !== 'undefined') SupabaseStore.syncUser(user);
             return { success: true, user };
         }
         return { success: false, message: 'Username atau password salah!' };
     },
     
-    registerStudent: (username, name, password) => {
+    registerStudent: async (username, name, password) => {
         const users = db.get(KEYS.USERS) || [];
         if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
             return { success: false, message: 'Username sudah digunakan!' };
         }
-        
-        const newStudent = {
-            id: 'usr-' + Date.now(),
-            username,
-            name,
-            role: 'siswa',
-            password
-        };
-        
+        const newStudent = { id: 'usr-' + Date.now(), username, name, role: 'siswa', password };
         users.push(newStudent);
         db.set(KEYS.USERS, users);
+        if (typeof SupabaseStore !== 'undefined') {
+            await SupabaseStore.syncUser(newStudent);
+        }
         return { success: true, user: newStudent };
     },
     
-    getCurrentUser: () => {
-        return db.get(KEYS.CURRENT_USER);
-    },
-    
-    logout: () => {
-        localStorage.removeItem(KEYS.CURRENT_USER);
-    },
-    
-    getStudents: () => {
-        const users = db.get(KEYS.USERS) || [];
-        return users.filter(u => u.role === 'siswa');
-    },
+    getCurrentUser: () => db.get(KEYS.CURRENT_USER),
+    logout: () => localStorage.removeItem(KEYS.CURRENT_USER),
+    getStudents: () => (db.get(KEYS.USERS) || []).filter(u => u.role === 'siswa'),
 
     // Subjects
-    getSubjects: () => {
-        return db.get(KEYS.SUBJECTS) || [];
-    },
-    
+    getSubjects: () => db.get(KEYS.SUBJECTS) || [],
     getSubjectName: (id) => {
-        const subjs = db.get(KEYS.SUBJECTS) || [];
-        const s = subjs.find(subj => subj.id === id);
+        const s = (db.get(KEYS.SUBJECTS) || []).find(sub => sub.id === id);
         return s ? s.name : 'Umum';
     },
 
-    // Materials / LKP
-    getMaterials: () => {
-        return db.get(KEYS.MATERIALS) || [];
-    },
-    
-    getMaterial: (id) => {
-        const mats = db.get(KEYS.MATERIALS) || [];
-        return mats.find(m => m.id === id);
-    },
-    
-    addMaterial: (subjectId, title, description, content, author) => {
-        const mats = db.get(KEYS.MATERIALS) || [];
-        const newMat = {
-            id: 'mat-' + Date.now(),
+    // 1. LKPD
+    getLKPDs: () => db.get(KEYS.LKPD) || [],
+    getLKPD: (id) => (db.get(KEYS.LKPD) || []).find(l => l.id === id),
+    addLKPD: (subjectId, title, description, questions) => {
+        const list = db.get(KEYS.LKPD) || [];
+        const item = {
+            id: 'lkpd-' + Date.now(),
             subjectId,
             title,
             description,
-            content,
-            author,
-            createdAt: new Date().toISOString(),
-            readBy: []
+            questions: questions.map((q, idx) => ({ id: `qlkpd-${Date.now()}-${idx}`, ...q }))
         };
-        mats.unshift(newMat);
-        db.set(KEYS.MATERIALS, mats);
-        return newMat;
-    },
-    
-    deleteMaterial: (id) => {
-        let mats = db.get(KEYS.MATERIALS) || [];
-        mats = mats.filter(m => m.id !== id);
-        db.set(KEYS.MATERIALS, mats);
-    },
-    
-    markMaterialAsRead: (id, userId) => {
-        const mats = db.get(KEYS.MATERIALS) || [];
-        const mat = mats.find(m => m.id === id);
-        if (mat && !mat.readBy.includes(userId)) {
-            mat.readBy.push(userId);
-            db.set(KEYS.MATERIALS, mats);
-        }
+        list.unshift(item);
+        db.set(KEYS.LKPD, list);
+        return item;
     },
 
-    // Exercises (Latihan Soal)
-    getExercises: () => {
-        return db.get(KEYS.EXERCISES) || [];
-    },
-    
-    getExercise: (id) => {
-        const exs = db.get(KEYS.EXERCISES) || [];
-        return exs.find(e => e.id === id);
-    },
-    
-    addExercise: (subjectId, title, description, questions) => {
-        const exs = db.get(KEYS.EXERCISES) || [];
-        const newEx = {
+    // 2. Latihan Soal
+    getExercises: () => db.get(KEYS.EXERCISES) || [],
+    getExercise: (id) => (db.get(KEYS.EXERCISES) || []).find(e => e.id === id),
+    addExercise: (subjectId, title, description, kkm, questions) => {
+        const list = db.get(KEYS.EXERCISES) || [];
+        const item = {
             id: 'ex-' + Date.now(),
             subjectId,
             title,
             description,
-            questions: questions.map((q, idx) => ({
-                id: `qex-${Date.now()}-${idx}`,
-                type: q.type || 'text',
-                ...q
-            }))
+            kkm: parseInt(kkm) || 75,
+            questions: questions.map((q, idx) => ({ id: `qex-${Date.now()}-${idx}`, ...q }))
         };
-        exs.unshift(newEx);
-        db.set(KEYS.EXERCISES, exs);
-        return newEx;
-    },
-    
-    deleteExercise: (id) => {
-        let exs = db.get(KEYS.EXERCISES) || [];
-        exs = exs.filter(e => e.id !== id);
-        db.set(KEYS.EXERCISES, exs);
+        list.unshift(item);
+        db.set(KEYS.EXERCISES, list);
+        return item;
     },
 
-    // Quizzes (Ujian Resmi)
-    getQuizzes: () => {
-        return db.get(KEYS.QUIZZES) || [];
-    },
-    
-    getQuiz: (id) => {
-        const qzs = db.get(KEYS.QUIZZES) || [];
-        return qzs.find(q => q.id === id);
-    },
-    
-    addQuiz: (subjectId, title, description, duration, questions) => {
-        const qzs = db.get(KEYS.QUIZZES) || [];
-        const newQuiz = {
-            id: 'quiz-' + Date.now(),
+    // 3. Remedial
+    getRemedials: () => db.get(KEYS.REMEDIAL) || [],
+    getRemedial: (id) => (db.get(KEYS.REMEDIAL) || []).find(r => r.id === id),
+    getRemedialForExercise: (exerciseId) => (db.get(KEYS.REMEDIAL) || []).find(r => r.exerciseId === exerciseId),
+    addRemedial: (exerciseId, subjectId, title, description, questions) => {
+        const list = db.get(KEYS.REMEDIAL) || [];
+        const item = {
+            id: 'rem-' + Date.now(),
+            exerciseId,
             subjectId,
             title,
             description,
-            duration: parseInt(duration) || 15,
-            questions: questions.map((q, idx) => ({
-                id: `qqz-${Date.now()}-${idx}`,
-                type: q.type || 'text',
-                ...q
-            }))
+            questions: questions.map((q, idx) => ({ id: `qrem-${Date.now()}-${idx}`, ...q }))
         };
-        qzs.unshift(newQuiz);
-        db.set(KEYS.QUIZZES, qzs);
-        return newQuiz;
-    },
-    
-    deleteQuiz: (id) => {
-        let qzs = db.get(KEYS.QUIZZES) || [];
-        qzs = qzs.filter(q => q.id !== id);
-        db.set(KEYS.QUIZZES, qzs);
+        list.unshift(item);
+        db.set(KEYS.REMEDIAL, list);
+        return item;
     },
 
-    // Submissions
-    getSubmissions: () => {
-        return db.get(KEYS.SUBMISSIONS) || [];
-    },
-    
-    getSubmission: (id) => {
+    isRemedialUnlockedForStudent: (studentId, exerciseId) => {
         const subs = db.get(KEYS.SUBMISSIONS) || [];
-        return subs.find(s => s.id === id);
+        const sub = subs.find(s => s.studentId === studentId && s.moduleId === exerciseId && s.moduleType === 'exercise');
+        if (!sub) return false;
+        const exercise = DataStore.getExercise(exerciseId);
+        const kkm = exercise ? exercise.kkm : 75;
+        return sub.overallScore < kkm;
     },
-    
-    addSubmission: (quizId, studentId, studentName, score, answers, aiReview) => {
-        const subs = db.get(KEYS.SUBMISSIONS) || [];
-        const newSub = {
-            id: 'sub-' + Date.now(),
-            quizId,
-            studentId,
-            studentName,
-            score,
-            answers,
-            completedAt: new Date().toISOString(),
-            status: 'belum_diperiksa', // default status
-            teacherNotes: '', // default empty notes
-            aiReview: aiReview
+
+    // 4. Evaluasi
+    getEvaluations: () => db.get(KEYS.EVALUATION) || [],
+    getEvaluation: (id) => (db.get(KEYS.EVALUATION) || []).find(e => e.id === id),
+    addEvaluation: (subjectId, title, description, duration, questions) => {
+        const list = db.get(KEYS.EVALUATION) || [];
+        const item = {
+            id: 'eval-' + Date.now(),
+            subjectId,
+            title,
+            description,
+            duration: parseInt(duration) || 30,
+            questions: questions.map((q, idx) => ({ id: `qeval-${Date.now()}-${idx}`, ...q }))
         };
-        subs.unshift(newSub);
-        db.set(KEYS.SUBMISSIONS, subs);
-        return newSub;
+        list.unshift(item);
+        db.set(KEYS.EVALUATION, list);
+        return item;
     },
+
+    // Submissions Management
+    getSubmissions: () => db.get(KEYS.SUBMISSIONS) || [],
+    getSubmission: (id) => (db.get(KEYS.SUBMISSIONS) || []).find(s => s.id === id),
+    getStudentSubmissions: (studentId) => (db.get(KEYS.SUBMISSIONS) || []).filter(s => s.studentId === studentId),
     
+    saveSubmission: (submission) => {
+        const list = db.get(KEYS.SUBMISSIONS) || [];
+        const index = list.findIndex(s => s.id === submission.id);
+        if (index >= 0) {
+            list[index] = submission;
+        } else {
+            list.unshift(submission);
+        }
+        db.set(KEYS.SUBMISSIONS, list);
+        if (typeof SupabaseStore !== 'undefined') SupabaseStore.syncSubmission(submission);
+        return submission;
+    },
+
     updateTeacherReview: (submissionId, notes) => {
-        const subs = db.get(KEYS.SUBMISSIONS) || [];
-        const s = subs.find(item => item.id === submissionId);
-        if (s) {
-            s.status = 'selesai_diperiksa';
-            s.teacherNotes = notes;
-            db.set(KEYS.SUBMISSIONS, subs);
+        const list = db.get(KEYS.SUBMISSIONS) || [];
+        const sub = list.find(s => s.id === submissionId);
+        if (sub) {
+            sub.status = 'selesai_diperiksa';
+            sub.teacherNotes = notes;
+            db.set(KEYS.SUBMISSIONS, list);
+            if (typeof SupabaseStore !== 'undefined') SupabaseStore.syncSubmission(sub);
             return { success: true };
         }
-        return { success: false, message: 'Ujian tidak ditemukan!' };
-    },
-    
-    getStudentSubmissions: (studentId) => {
-        const subs = db.get(KEYS.SUBMISSIONS) || [];
-        return subs.filter(s => s.studentId === studentId);
-    },
-    
-    getQuizSubmissions: (quizId) => {
-        const subs = db.get(KEYS.SUBMISSIONS) || [];
-        return subs.filter(s => s.quizId === quizId);
+        return { success: false, message: 'Data pengerjaan tidak ditemukan!' };
     }
 };

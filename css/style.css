@@ -1655,3 +1655,140 @@ a {
     width: 100%;
 }
 
+/* ==========================================================================
+   Modals, Dropzones, AI Cards & Premium Glassmorphism UI
+   ========================================================================== */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+}
+
+.modal-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    width: 100%;
+    max-width: 680px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    overflow: hidden;
+    animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.75rem;
+    border-bottom: 1px solid var(--border-color);
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+.modal-header h3 {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--text-main);
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: var(--transition-base);
+}
+
+.close-btn:hover {
+    color: var(--danger-color);
+    transform: rotate(90deg);
+}
+
+.modal-body {
+    padding: 1.75rem;
+}
+
+/* Photo Dropzone Styling */
+.photo-dropzone {
+    transition: var(--transition-base);
+    background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);
+    border: 2px dashed #94a3b8 !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.photo-dropzone:hover {
+    background: #f0fdf4 !important;
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.15);
+}
+
+/* Glassmorphism Top Navbar */
+.top-navbar {
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+/* AI Per-Question Card Styling */
+.ai-question-card {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border: 1.5px solid #7dd3fc;
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.08);
+    transition: var(--transition-base);
+}
+
+.ai-question-card:hover {
+    box-shadow: 0 6px 16px rgba(2, 132, 199, 0.15);
+}
+
+/* KKM Glow & Warning Badges */
+.badge-kkm-warning {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    color: #92400e;
+    border: 1px solid #fcd34d;
+    box-shadow: 0 2px 6px rgba(245, 158, 11, 0.2);
+}
+
+.badge-kkm-success {
+    background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+    color: #166534;
+    border: 1px solid #86efac;
+    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.2);
+}
+
+/* Card Hover Enhancements */
+.content-card {
+    transition: var(--transition-base);
+}
+
+.content-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md), 0 10px 20px -5px rgba(99, 102, 241, 0.08);
+}
+
+/* PDF Print Styles */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    .print-document, .print-document * {
+        visibility: visible;
+    }
+    .print-document {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        padding: 0;
+    }
+}
+
+
