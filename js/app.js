@@ -129,6 +129,7 @@ const App = {
         }
 
         root.innerHTML = Views.teacherLayout(App.state.teacherActiveTab, subContent);
+        App.setupSidebarGestures();
         if (App.state.teacherActiveTab === 'overview') {
             App.initTeacherOverviewChart();
         }
@@ -184,6 +185,46 @@ const App = {
         }
 
         root.innerHTML = Views.studentLayout(App.state.studentActiveTab, subContent);
+        App.setupSidebarGestures();
+    },
+
+    toggleSidebar: (forceOpen) => {
+        const dashboard = document.querySelector('.dashboard-container');
+        const toggle = document.querySelector('.sidebar-toggle');
+        if (!dashboard) return;
+
+        const isOpen = typeof forceOpen === 'boolean'
+            ? forceOpen
+            : !dashboard.classList.contains('sidebar-open');
+        dashboard.classList.toggle('sidebar-open', isOpen);
+        if (toggle) {
+            toggle.setAttribute('aria-expanded', String(isOpen));
+            toggle.setAttribute('aria-label', isOpen ? 'Tutup menu navigasi' : 'Buka menu navigasi');
+            toggle.innerHTML = `<i class="fa-solid ${isOpen ? 'fa-xmark' : 'fa-bars'}"></i>`;
+        }
+    },
+
+    setupSidebarGestures: () => {
+        const sidebar = document.querySelector('.sidebar');
+        const mainContent = document.querySelector('.main-content');
+        if (!sidebar || !mainContent) return;
+
+        let touchStartX = 0;
+        sidebar.addEventListener('touchstart', (event) => {
+            touchStartX = event.changedTouches[0].screenX;
+        }, { passive: true });
+        sidebar.addEventListener('touchend', (event) => {
+            const distance = event.changedTouches[0].screenX - touchStartX;
+            if (distance < -50) App.toggleSidebar(false);
+        }, { passive: true });
+
+        mainContent.addEventListener('touchstart', (event) => {
+            touchStartX = event.changedTouches[0].screenX;
+        }, { passive: true });
+        mainContent.addEventListener('touchend', (event) => {
+            const distance = event.changedTouches[0].screenX - touchStartX;
+            if (touchStartX < 30 && distance > 50) App.toggleSidebar(true);
+        }, { passive: true });
     },
 
     // 6. Worksheet Play Controller (LKPD, Latihan, Remedial, Evaluasi)
@@ -357,11 +398,6 @@ const App = {
         // Navigate back to student grades / report download screen
         App.state.studentActiveTab = 'grades';
         App.navigateTo('student');
-
-        // Automatically trigger PDF preview option modal
-        setTimeout(() => {
-            App.downloadPDFReport(newSub.id);
-        }, 600);
     },
 
     // 7. Download PDF Report Handler
@@ -445,7 +481,7 @@ const App = {
             document.body.appendChild(modalWrapper);
         }
         modalWrapper.innerHTML = `
-        <div class="modal-overlay animate-fade-in" onclick="App.closeModal()">
+        <div class="modal-overlay open animate-fade-in" onclick="App.closeModal()">
             <div class="modal-card" onclick="event.stopPropagation()">
                 <div class="modal-header">
                     <h3>${title}</h3>

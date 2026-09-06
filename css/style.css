@@ -444,6 +444,11 @@ a {
     flex-shrink: 0;
 }
 
+.sidebar-backdrop,
+.sidebar-toggle {
+    display: none;
+}
+
 .sidebar-header {
     padding: 1.75rem 1.5rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
@@ -1574,35 +1579,72 @@ a {
    ========================================================================== */
 @media (max-width: 768px) {
     .dashboard-container {
-        flex-direction: column;
-    }
-    
-    .sidebar {
-        width: 100%;
-        height: auto;
+        display: block;
         position: relative;
     }
     
+    .sidebar {
+        width: min(82vw, 280px);
+        height: 100vh;
+        position: fixed;
+        inset: 0 auto 0 0;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        overflow-y: auto;
+        z-index: 110;
+    }
+
+    .dashboard-container.sidebar-open .sidebar {
+        transform: translateX(0);
+    }
+
+    .sidebar-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.5);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+        z-index: 105;
+    }
+
+    .dashboard-container.sidebar-open .sidebar-backdrop {
+        opacity: 1;
+        pointer-events: auto;
+    }
+    
     .sidebar-menu {
-        flex-direction: row;
-        padding: 0.75rem;
-        overflow-x: auto;
-        gap: 0.5rem;
-        scrollbar-width: thin;
+        flex-direction: column;
+        padding: 1rem 0.75rem;
+        overflow-x: visible;
     }
     
     .sidebar-user {
-        display: none;
+        display: flex;
     }
     
     .menu-item a {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.85rem;
-        white-space: nowrap;
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
     }
     
     .sidebar-footer {
-        display: none;
+        display: block;
+    }
+
+    .sidebar-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 42px;
+        height: 42px;
+        flex: 0 0 42px;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        background: var(--bg-card);
+        color: var(--text-main);
+        cursor: pointer;
     }
     
     .content-body {

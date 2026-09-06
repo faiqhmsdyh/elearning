@@ -350,15 +350,15 @@ const db = {
     }
 };
 
-// Data Initializer (Force update seed data so user sees populated tables instantly)
+// Initialize only the account and subject catalog; learning data is created by the user.
 function initializeData() {
-    db.set(KEYS.USERS, MOCK_DATA.users);
-    db.set(KEYS.SUBJECTS, MOCK_DATA.subjects);
-    db.set(KEYS.LKPD, MOCK_DATA.lkpd);
-    db.set(KEYS.EXERCISES, MOCK_DATA.exercises);
-    db.set(KEYS.REMEDIAL, MOCK_DATA.remedial);
-    db.set(KEYS.EVALUATION, MOCK_DATA.evaluation);
-    db.set(KEYS.SUBMISSIONS, MOCK_DATA.submissions);
+    if (!db.get(KEYS.USERS)) db.set(KEYS.USERS, MOCK_DATA.users);
+    if (!db.get(KEYS.SUBJECTS)) db.set(KEYS.SUBJECTS, MOCK_DATA.subjects);
+    if (!db.get(KEYS.LKPD)) db.set(KEYS.LKPD, []);
+    if (!db.get(KEYS.EXERCISES)) db.set(KEYS.EXERCISES, []);
+    if (!db.get(KEYS.REMEDIAL)) db.set(KEYS.REMEDIAL, []);
+    if (!db.get(KEYS.EVALUATION)) db.set(KEYS.EVALUATION, []);
+    if (!db.get(KEYS.SUBMISSIONS)) db.set(KEYS.SUBMISSIONS, []);
 }
 
 initializeData();

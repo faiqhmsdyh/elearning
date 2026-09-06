@@ -135,12 +135,15 @@ const PDFReportModule = {
                     </style>
                 </head>
                 <body>
+                    <div class="print-actions">
+                        <button type="button" onclick="window.print()">Cetak / Simpan PDF</button>
+                    </div>
                     ${printHTML}
-                    <script>
-                        window.onload = function() {
-                            window.print();
-                        }
-                    <\/script>
+                    <style>
+                        .print-actions { text-align: right; margin-bottom: 1rem; }
+                        .print-actions button { border: 0; border-radius: 6px; padding: 0.7rem 1rem; background: #6366f1; color: #fff; font: 600 14px Arial, sans-serif; cursor: pointer; }
+                        @media print { .print-actions { display: none; } }
+                    </style>
                 </body>
                 </html>
             `);

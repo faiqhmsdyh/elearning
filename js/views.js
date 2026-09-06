@@ -192,20 +192,16 @@ const Views = {
                     </button>
                 </div>
             </aside>
+            <div class="sidebar-backdrop" onclick="App.toggleSidebar(false)"></div>
             
             <!-- Main Content Area -->
             <main class="main-content">
                 <header class="top-navbar">
+                    <button class="sidebar-toggle" type="button" onclick="App.toggleSidebar()" aria-label="Buka menu navigasi" aria-expanded="false">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
                     <div class="navbar-title">
                         <h1>Panel Manajemen Pembelajaran Guru</h1>
-                    </div>
-                    <div class="navbar-actions" style="display:flex; align-items:center; gap:0.75rem;">
-                        <button class="btn btn-outline btn-sm" onclick="App.openSupabaseKeyModal()" style="font-size:0.8rem;">
-                            <i class="fa-solid fa-key"></i> Key Supabase
-                        </button>
-                        <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted)">
-                            <i class="fa-solid fa-database"></i> Supabase: Connected
-                        </div>
                     </div>
                 </header>
                 
@@ -287,47 +283,73 @@ const Views = {
     // 10. Guru Subview: Grades & Teacher Notes
     teacherGrades: () => {
         const subs = DataStore.getSubmissions();
+        const students = DataStore.getStudents();
         return `
         <div>
             <h2><i class="fa-solid fa-square-poll-vertical"></i> Periksa Hasil & Catatan Guru</h2>
             <p style="color:var(--text-muted); margin-bottom:1.5rem;">Periksa jawaban siswa (Teks/Foto), baca hasil Koreksi AI Per-Soal, dan berikan catatan umpan balik.</p>
 
             <div class="content-card">
-                <table class="data-table">
+                <div class="card-header-flex">
+                    <div>
+                        <h3>Daftar Siswa & Status Pengumpulan</h3>
+                        <p style="color:var(--text-muted); font-size:0.85rem;">Pantau pengumpulan dan periksa hasil kerja setiap siswa.</p>
+                    </div>
+                    <span class="badge badge-info">${students.length} Siswa</span>
+                </div>
+                <div class="table-responsive">
+                <table class="custom-table">
                     <thead>
                         <tr>
-                            <th>Waktu</th>
                             <th>Siswa</th>
                             <th>Modul</th>
+                            <th>Waktu Pengumpulan</th>
                             <th>Skor AI</th>
-                            <th>Status Koreksi</th>
+                            <th>Status</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${subs.map(s => `
-                        <tr>
-                            <td>${new Date(s.completedAt).toLocaleDateString('id-ID')}</td>
-                            <td><strong>${s.studentName}</strong></td>
-                            <td><span class="badge badge-info">${s.moduleType.toUpperCase()}</span></td>
-                            <td><strong style="color:var(--primary-color); font-size:1.1rem">${s.overallScore}</strong> / 100</td>
-                            <td>
-                                ${s.status === 'selesai_diperiksa' 
-                                    ? '<span class="badge badge-success"><i class="fa-solid fa-circle-check"></i> Selesai Diperiksa</span>' 
-                                    : '<span class="badge badge-warning"><i class="fa-solid fa-clock"></i> Belum Diperiksa</span>'}
-                            </td>
-                            <td>
-                                <button class="btn btn-secondary btn-sm" onclick="App.openGradeDetailModal('${s.id}')">
-                                    <i class="fa-solid fa-pen-to-square"></i> Periksa & Catat
-                                </button>
-                                <button class="btn btn-outline btn-sm" onclick="App.downloadPDFReport('${s.id}')">
-                                    <i class="fa-solid fa-download"></i> PDF
-                                </button>
-                            </td>
-                        </tr>
-                        `).join('')}
+                        ${students.length ? students.map(student => {
+                            const studentSubs = subs.filter(sub => sub.studentId === student.id);
+                            const studentLabel = `<strong>${student.name}</strong><br><small style="color:var(--text-muted)">@${student.username}</small>`;
+                            if (!studentSubs.length) {
+                                return `
+                                <tr>
+                                    <td>${studentLabel}</td>
+                                    <td>-</td>
+                                    <td>-</td>
+                                    <td>-</td>
+                                    <td><span class="badge badge-secondary"><i class="fa-solid fa-minus"></i> Belum Mengumpulkan</span></td>
+                                    <td><span style="color:var(--text-muted); font-size:0.85rem;">Belum ada data</span></td>
+                                </tr>
+                                `;
+                            }
+                            return studentSubs.map(sub => `
+                            <tr>
+                                <td>${studentLabel}</td>
+                                <td><span class="badge badge-info">${sub.moduleType.toUpperCase()}</span></td>
+                                <td>${new Date(sub.completedAt).toLocaleDateString('id-ID')}</td>
+                                <td><strong style="color:var(--primary-color); font-size:1.1rem">${sub.overallScore}</strong> / 100</td>
+                                <td>${sub.status === 'selesai_diperiksa'
+                                    ? '<span class="badge badge-success"><i class="fa-solid fa-circle-check"></i> Selesai Diperiksa</span>'
+                                    : '<span class="badge badge-warning"><i class="fa-solid fa-clock"></i> Belum Diperiksa</span>'}</td>
+                                <td>
+                                    <button class="btn btn-secondary btn-sm" onclick="App.openGradeDetailModal('${sub.id}')">
+                                        <i class="fa-solid fa-pen-to-square"></i> Periksa
+                                    </button>
+                                    <button class="btn btn-outline btn-sm" onclick="App.downloadPDFReport('${sub.id}')">
+                                        <i class="fa-solid fa-download"></i> PDF
+                                    </button>
+                                </td>
+                            </tr>
+                            `).join('');
+                        }).join('') : `
+                            <tr><td colspan="6" style="text-align:center; color:var(--text-muted);">Belum ada siswa terdaftar.</td></tr>
+                        `}
                     </tbody>
                 </table>
+                </div>
             </div>
         </div>
         `;
@@ -395,17 +417,18 @@ const Views = {
                     </button>
                 </div>
             </aside>
+            <div class="sidebar-backdrop" onclick="App.toggleSidebar(false)"></div>
             
             <!-- Main Content Area -->
             <main class="main-content">
                 <header class="top-navbar">
+                    <button class="sidebar-toggle" type="button" onclick="App.toggleSidebar()" aria-label="Buka menu navigasi" aria-expanded="false">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
                     <div class="navbar-title">
                         <h1>EduSmart Student Room</h1>
                     </div>
                     <div class="navbar-actions" style="display:flex; align-items:center; gap:0.75rem;">
-                        <button class="btn btn-outline btn-sm" onclick="App.openSupabaseKeyModal()" style="font-size:0.8rem;">
-                            <i class="fa-solid fa-key"></i> Key Supabase
-                        </button>
                         <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted)">
                             <i class="fa-solid fa-calendar-days"></i> ${new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                         </div>

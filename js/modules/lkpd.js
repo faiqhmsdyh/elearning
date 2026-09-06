@@ -83,6 +83,7 @@ const LKPDModule = {
             <div class="form-group">
                 <label>Mata Pelajaran</label>
                 <select id="lkpd-subj" class="form-control" required>
+                    <option value="" selected disabled>Pilih mata pelajaran</option>
                     <option value="subj-math">Matematika</option>
                     <option value="subj-science">Ilmu Pengetahuan Alam (IPA)</option>
                     <option value="subj-english">Bahasa Inggris</option>
