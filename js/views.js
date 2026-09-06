@@ -65,12 +65,12 @@ const Views = {
                 <form onsubmit="App.handleLogin(event, '${role}')" class="auth-form">
                     <div class="form-group">
                         <label for="username"><i class="fa-solid fa-user"></i> Username</label>
-                        <input type="text" id="username" class="form-control" placeholder="Contoh: ${isGuru ? 'guru' : 'siswa'}" required value="${isGuru ? 'guru' : 'siswa'}">
+                        <input type="text" id="username" class="form-control" placeholder="Contoh: ${isGuru ? 'guru' : 'siswa'}" required autocomplete="username">
                     </div>
                     
                     <div class="form-group">
                         <label for="password"><i class="fa-solid fa-lock"></i> Password</label>
-                        <input type="password" id="password" class="form-control" placeholder="Masukkan password Anda" required value="password123">
+                        <input type="password" id="password" class="form-control" placeholder="Masukkan password Anda" required autocomplete="current-password">
                     </div>
                     
                     <button type="submit" class="btn btn-primary btn-block">
