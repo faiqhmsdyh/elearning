@@ -368,29 +368,46 @@ initializeData();
  */
 const DataStore = {
     // Auth & Users
-    loginUser: (username, password) => {
-        const users = db.get(KEYS.USERS) || [];
-        const user = users.find(u => u.username.toLowerCase() === username.toLowerCase() && u.password === password);
-        if (user) {
-            db.set(KEYS.CURRENT_USER, user);
-            if (typeof SupabaseStore !== 'undefined') SupabaseStore.syncUser(user);
-            return { success: true, user };
-        }
-        return { success: false, message: 'Username atau password salah!' };
-    },
-    
     registerStudent: async (username, name, password) => {
         const users = db.get(KEYS.USERS) || [];
         if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
             return { success: false, message: 'Username sudah digunakan!' };
         }
         const newStudent = { id: 'usr-' + Date.now(), username, name, role: 'siswa', password };
+        if (typeof SupabaseStore !== 'undefined') {
+            const syncResult = await SupabaseStore.syncUser(newStudent);
+            if (!syncResult.success) {
+                return { success: false, message: 'Pendaftaran gagal disimpan ke server. Periksa koneksi backend Supabase.' };
+            }
+        }
         users.push(newStudent);
         db.set(KEYS.USERS, users);
-        if (typeof SupabaseStore !== 'undefined') {
-            await SupabaseStore.syncUser(newStudent);
-        }
         return { success: true, user: newStudent };
+    },
+
+    loginUser: async (username, password, role) => {
+        const localUsers = db.get(KEYS.USERS) || [];
+        let users = localUsers;
+
+        if (typeof SupabaseStore !== 'undefined') {
+            const remoteUsers = await SupabaseStore.fetchUsers();
+            if (Array.isArray(remoteUsers)) {
+                users = remoteUsers;
+                db.set(KEYS.USERS, remoteUsers);
+            }
+        }
+
+        const user = users.find(u =>
+            u.username.toLowerCase() === username.toLowerCase() &&
+            u.password === password &&
+            (!role || u.role === role)
+        );
+        if (user) {
+            db.set(KEYS.CURRENT_USER, user);
+            if (typeof SupabaseStore !== 'undefined') SupabaseStore.syncUser(user);
+            return { success: true, user };
+        }
+        return { success: false, message: 'Username atau password salah!' };
     },
     
     getCurrentUser: () => db.get(KEYS.CURRENT_USER),

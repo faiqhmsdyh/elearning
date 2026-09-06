@@ -67,13 +67,13 @@ const App = {
     },
 
     // 3. Authentication Handlers
-    handleLogin: (event, role) => {
+    handleLogin: async (event, role) => {
         event.preventDefault();
         const userField = document.getElementById('username');
         const passField = document.getElementById('password');
         if (!userField || !passField) return;
 
-        const res = DataStore.loginUser(userField.value.trim(), passField.value);
+        const res = await DataStore.loginUser(userField.value.trim(), passField.value, role);
         if (res.success) {
             App.showToast(`Selamat datang kembali, ${res.user.name}!`, 'success');
             if (res.user.role === 'guru') {

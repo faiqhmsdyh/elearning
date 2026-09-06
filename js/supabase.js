@@ -149,6 +149,35 @@ const SupabaseStore = {
         }
     },
 
+    // Fetch users so login works on every device, not only from localStorage.
+    fetchUsers: async () => {
+        if (supabaseClient) {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('users')
+                    .select('id, username, name, role, password');
+                if (!error && Array.isArray(data)) return data;
+                if (error) console.warn('Could not fetch users from Supabase:', error.message);
+            } catch (err) {
+                console.warn('Supabase users fetch error:', err.message);
+            }
+        }
+
+        const activeKey = getActiveSupabaseKey();
+        try {
+            const res = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/users?select=id,username,name,role,password`, {
+                headers: {
+                    apikey: activeKey,
+                    Authorization: `Bearer ${activeKey}`
+                }
+            });
+            if (res.ok) return await res.json();
+        } catch (err) {
+            console.warn('Supabase REST users fetch error:', err.message);
+        }
+        return null;
+    },
+
     // Fetch submissions from Supabase
     fetchSubmissions: async () => {
         if (!supabaseClient) return null;
