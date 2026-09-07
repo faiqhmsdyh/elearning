@@ -115,13 +115,13 @@ const EvaluationModule = {
         const title = document.getElementById('eval-title').value.trim();
         const duration = document.getElementById('eval-duration').value;
         const desc = document.getElementById('eval-desc').value.trim();
-        const question = App.getQuestionFormData('eval', 'eval-q1');
-        if (question.questionType === 'pilihan-ganda' && (question.options.length < 2 || !question.correctAnswer)) {
+        const questions = App.getQuestionFormData('eval');
+        if (questions.some(question => !question.questionText || (question.questionType === 'pilihan-ganda' && (question.options.length < 2 || !question.correctAnswer)))) {
             App.showToast('Isi minimal dua opsi dan pilih kunci jawaban.', 'error');
             return;
         }
 
-        DataStore.addEvaluation(subj, title, desc, duration, [question]);
+        DataStore.addEvaluation(subj, title, desc, duration, questions);
         App.showToast('Ujian Evaluasi berhasil ditambahkan!', 'success');
         App.closeModal();
         App.render();

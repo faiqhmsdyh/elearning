@@ -717,8 +717,15 @@ const Views = {
 
             <form onsubmit="App.handleSaveTeacherReview(event, '${sub.id}')">
                 <div class="form-group">
-                    <label for="teacher-score-input"><i class="fa-solid fa-star"></i> Nilai Guru (0-100):</label>
-                    <input id="teacher-score-input" class="form-control" type="number" min="0" max="100" step="1" value="${sub.teacherScore ?? ''}" required>
+                    <label for="teacher-score-input"><i class="fa-solid fa-star"></i> Pilihan Penilaian Guru:</label>
+                    <select id="teacher-score-input" class="form-control" required>
+                        <option value="" disabled ${sub.teacherScore === null || sub.teacherScore === undefined ? 'selected' : ''}>Pilih penilaian</option>
+                        <option value="95" ${sub.teacherScore >= 90 ? 'selected' : ''}>Sangat Baik (90-100)</option>
+                        <option value="85" ${sub.teacherScore >= 80 && sub.teacherScore < 90 ? 'selected' : ''}>Baik (80-89)</option>
+                        <option value="75" ${sub.teacherScore >= 70 && sub.teacherScore < 80 ? 'selected' : ''}>Cukup (70-79)</option>
+                        <option value="60" ${sub.teacherScore < 70 && sub.teacherScore !== null && sub.teacherScore !== undefined ? 'selected' : ''}>Perlu Bimbingan (0-69)</option>
+                    </select>
+                    <small style="display:block; margin-top:0.35rem; color:var(--text-muted);">Nilai angka akan ditentukan otomatis dari pilihan ini.</small>
                 </div>
                 <div class="form-group">
                     <label for="teacher-notes-input"><i class="fa-solid fa-pen-nib"></i> Catatan & Umpan Balik Guru:</label>

@@ -139,14 +139,14 @@ const RemedialModule = {
         const exId = document.getElementById('rem-ex-id').value;
         const title = document.getElementById('rem-title').value.trim();
         const desc = document.getElementById('rem-desc').value.trim();
-        const question = App.getQuestionFormData('rem', 'rem-q1');
-        if (question.questionType === 'pilihan-ganda' && (question.options.length < 2 || !question.correctAnswer)) {
+        const questions = App.getQuestionFormData('rem');
+        if (questions.some(question => !question.questionText || (question.questionType === 'pilihan-ganda' && (question.options.length < 2 || !question.correctAnswer)))) {
             App.showToast('Isi minimal dua opsi dan pilih kunci jawaban.', 'error');
             return;
         }
 
         const ex = DataStore.getExercise(exId);
-        DataStore.addRemedial(exId, ex ? ex.subjectId : 'subj-math', title, desc, [question]);
+        DataStore.addRemedial(exId, ex ? ex.subjectId : 'subj-math', title, desc, questions);
         App.showToast('Paket Remedial berhasil disimpan!', 'success');
         App.closeModal();
         App.render();

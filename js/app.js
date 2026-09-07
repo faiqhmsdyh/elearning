@@ -298,45 +298,74 @@ const App = {
         }
     },
 
-    toggleQuestionType: (prefix) => {
-        const type = document.getElementById(`${prefix}-type`)?.value;
-        const fields = document.querySelector(`.multiple-choice-fields-${prefix}`);
+    toggleQuestionType: (prefix, index) => {
+        const type = document.getElementById(`${prefix}-type-${index}`)?.value;
+        const fields = document.querySelector(`.multiple-choice-fields-${prefix}-${index}`);
         if (fields) fields.style.display = type === 'pilihan-ganda' ? 'block' : 'none';
     },
 
-    questionBuilderFields: (prefix) => `
-        <div class="form-group">
-            <label for="${prefix}-type">Bentuk Soal</label>
-            <select id="${prefix}-type" class="form-control" onchange="App.toggleQuestionType('${prefix}')" required>
+    questionBuilderItem: (prefix, index) => `
+        <div class="question-builder-item" data-question-index="${index}" style="border:1px solid var(--border-color); padding:1rem; border-radius:var(--radius-md); margin-bottom:1rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+                <strong>Soal #${index}</strong>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="App.removeQuestionField('${prefix}', ${index})" ${index === 1 ? 'style="display:none"' : ''}>Hapus</button>
+            </div>
+            <div class="form-group">
+            <label for="${prefix}-type-${index}">Bentuk Soal</label>
+            <select id="${prefix}-type-${index}" class="form-control" onchange="App.toggleQuestionType('${prefix}', ${index})" required>
                 <option value="uraian">Uraian</option>
                 <option value="pilihan-ganda">Pilihan Ganda</option>
             </select>
-        </div>
-        <div class="form-group">
-            <label>Pertanyaan Soal #1</label>
-            <textarea id="${prefix}-q1" class="form-control" rows="2" placeholder="Tuliskan pertanyaan soal #1..." required></textarea>
-        </div>
-        <div class="multiple-choice-fields-${prefix}" style="display:none; padding:0.75rem; background:var(--bg-main); border-radius:var(--radius-md);">
+            </div>
+            <div class="form-group">
+                <label for="${prefix}-q${index}">Pertanyaan Soal #${index}</label>
+                <textarea id="${prefix}-q${index}" class="form-control" rows="2" placeholder="Tuliskan pertanyaan soal #${index}..." required></textarea>
+            </div>
+        <div class="multiple-choice-fields-${prefix}-${index}" style="display:none; padding:0.75rem; background:var(--bg-main); border-radius:var(--radius-md);">
             <label>Opsi Jawaban</label>
-            ${['a', 'b', 'c', 'd'].map(letter => `<input type="text" id="${prefix}-option-${letter}" class="form-control" style="margin-top:0.5rem;" placeholder="Opsi ${letter.toUpperCase()}">`).join('')}
-            <label for="${prefix}-correct" style="display:block; margin-top:0.75rem;">Kunci Jawaban</label>
-            <select id="${prefix}-correct" class="form-control" style="margin-top:0.5rem;">
+            ${['a', 'b', 'c', 'd'].map(letter => `<input type="text" id="${prefix}-option-${index}-${letter}" class="form-control" style="margin-top:0.5rem;" placeholder="Opsi ${letter.toUpperCase()}">`).join('')}
+            <label for="${prefix}-correct-${index}" style="display:block; margin-top:0.75rem;">Kunci Jawaban</label>
+            <select id="${prefix}-correct-${index}" class="form-control" style="margin-top:0.5rem;">
                 <option value="">Pilih kunci jawaban</option>
                 <option value="a">Opsi A</option>
                 <option value="b">Opsi B</option>
                 <option value="c">Opsi C</option>
                 <option value="d">Opsi D</option>
             </select>
+        </div>
         </div>`,
 
-    getQuestionFormData: (prefix, questionId) => {
-        const type = document.getElementById(`${prefix}-type`)?.value || 'uraian';
-        const questionText = document.getElementById(questionId)?.value.trim() || '';
-        const options = ['a', 'b', 'c', 'd']
-            .map(letter => document.getElementById(`${prefix}-option-${letter}`)?.value.trim() || '')
-            .filter(Boolean);
-        const correctAnswer = document.getElementById(`${prefix}-correct`)?.value || '';
-        return { questionText, questionType: type, options, correctAnswer };
+    questionBuilderFields: (prefix) => `
+        <div id="${prefix}-questions" class="question-builder-${prefix}">
+            ${App.questionBuilderItem(prefix, 1)}
+        </div>
+        <button type="button" class="btn btn-outline" style="margin-bottom:1rem;" onclick="App.addQuestionField('${prefix}')">
+            <i class="fa-solid fa-plus"></i> Tambah Soal
+        </button>`,
+
+    addQuestionField: (prefix) => {
+        const container = document.getElementById(`${prefix}-questions`);
+        if (!container) return;
+        const index = container.querySelectorAll('.question-builder-item').length + 1;
+        container.insertAdjacentHTML('beforeend', App.questionBuilderItem(prefix, index));
+    },
+
+    removeQuestionField: (prefix, index) => {
+        const item = document.querySelector(`#${prefix}-questions [data-question-index="${index}"]`);
+        if (item) item.remove();
+    },
+
+    getQuestionFormData: (prefix) => {
+        return [...document.querySelectorAll(`#${prefix}-questions .question-builder-item`)].map(item => {
+            const index = item.dataset.questionIndex;
+            const type = document.getElementById(`${prefix}-type-${index}`)?.value || 'uraian';
+            const questionText = document.getElementById(`${prefix}-q${index}`)?.value.trim() || '';
+            const options = ['a', 'b', 'c', 'd']
+                .map(letter => document.getElementById(`${prefix}-option-${index}-${letter}`)?.value.trim() || '')
+                .filter(Boolean);
+            const correctAnswer = document.getElementById(`${prefix}-correct-${index}`)?.value || '';
+            return { questionText, questionType: type, options, correctAnswer };
+        });
     },
 
     handlePhotoUpload: (event, questionId) => {
@@ -463,7 +492,7 @@ const App = {
         const score = scoreInput ? Number(scoreInput.value) : NaN;
 
         if (!Number.isInteger(score) || score < 0 || score > 100) {
-            App.showToast('Masukkan nilai Guru antara 0 sampai 100.', 'error');
+            App.showToast('Pilih salah satu kategori penilaian Guru.', 'error');
             return;
         }
 

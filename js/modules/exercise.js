@@ -144,13 +144,13 @@ const ExerciseModule = {
         const title = document.getElementById('ex-title').value.trim();
         const kkm = document.getElementById('ex-kkm').value;
         const desc = document.getElementById('ex-desc').value.trim();
-        const question = App.getQuestionFormData('ex', 'ex-q1');
-        if (question.questionType === 'pilihan-ganda' && (question.options.length < 2 || !question.correctAnswer)) {
+        const questions = App.getQuestionFormData('ex');
+        if (questions.some(question => !question.questionText || (question.questionType === 'pilihan-ganda' && (question.options.length < 2 || !question.correctAnswer)))) {
             App.showToast('Isi minimal dua opsi dan pilih kunci jawaban.', 'error');
             return;
         }
 
-        DataStore.addExercise(subj, title, desc, kkm, [question]);
+        DataStore.addExercise(subj, title, desc, kkm, questions);
         App.showToast('Latihan Soal berhasil ditambahkan!', 'success');
         App.closeModal();
         App.render();

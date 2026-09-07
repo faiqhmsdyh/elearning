@@ -115,13 +115,13 @@ const LKPDModule = {
         const subj = document.getElementById('lkpd-subj').value;
         const title = document.getElementById('lkpd-title').value.trim();
         const desc = document.getElementById('lkpd-desc').value.trim();
-        const question = App.getQuestionFormData('lkpd', 'lkpd-q1');
-        if (question.questionType === 'pilihan-ganda' && (question.options.length < 2 || !question.correctAnswer)) {
+        const questions = App.getQuestionFormData('lkpd');
+        if (questions.some(question => !question.questionText || (question.questionType === 'pilihan-ganda' && (question.options.length < 2 || !question.correctAnswer)))) {
             App.showToast('Isi minimal dua opsi dan pilih kunci jawaban.', 'error');
             return;
         }
 
-        DataStore.addLKPD(subj, title, desc, [question]);
+        DataStore.addLKPD(subj, title, desc, questions);
         App.showToast('LKPD Baru berhasil dibuat!', 'success');
         App.closeModal();
         App.render();

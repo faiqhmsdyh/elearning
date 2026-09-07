@@ -114,16 +114,26 @@ a {
    Landing Page (Role Selection)
    ========================================================================== */
 .landing-container {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    background: radial-gradient(circle at 10% 20%, rgb(240, 243, 255) 0%, rgb(255, 255, 255) 90%);
+    background: #d9dee3 url('https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=2200&q=82') center / cover no-repeat;
     padding: 2rem;
 }
 
+.landing-container::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(20, 29, 38, 0.34);
+}
+
 .landing-header {
+    position: relative;
+    z-index: 1;
     text-align: center;
     margin-bottom: 3.5rem;
     max-width: 600px;
@@ -154,6 +164,8 @@ a {
 }
 
 .role-cards {
+    position: relative;
+    z-index: 1;
     display: flex;
     gap: 2rem;
     max-width: 900px;
@@ -164,8 +176,8 @@ a {
 }
 
 .role-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.84);
+    border: 1px solid rgba(255, 255, 255, 0.72);
     border-radius: var(--radius-lg);
     padding: 3rem 2rem;
     width: 320px;
@@ -176,6 +188,7 @@ a {
     display: flex;
     flex-direction: column;
     align-items: center;
+    backdrop-filter: blur(5px);
 }
 
 .role-card:hover {
@@ -227,27 +240,43 @@ a {
     line-height: 1.5;
 }
 
+.landing-container > div:last-child {
+    position: relative;
+    z-index: 1;
+}
+
 /* ==========================================================================
    Login / Register Pages
    ========================================================================== */
 .auth-container {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    background: radial-gradient(circle at 10% 20%, rgb(243, 244, 246) 0%, rgb(255, 255, 255) 90%);
+    background: #d9dee3 url('https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=2200&q=82') center / cover no-repeat;
     padding: 2rem;
 }
 
+.auth-container::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(20, 29, 38, 0.34);
+}
+
 .auth-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
+    position: relative;
+    z-index: 1;
+    background: rgba(255, 255, 255, 0.86);
+    border: 1px solid rgba(255, 255, 255, 0.72);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-lg);
     width: 100%;
     max-width: 480px;
     padding: 3rem 2.5rem;
     animation: fadeIn 0.4s ease-out;
+    backdrop-filter: blur(6px);
 }
 
 .auth-header {
