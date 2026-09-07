@@ -10,6 +10,7 @@ const App = {
         currentPath: 'landing', // landing, login-guru, login-siswa, register, teacher, student, play-worksheet
         teacherActiveTab: 'overview',
         studentActiveTab: 'overview',
+        studentSubjectFilter: '',
         
         // Active Play Worksheet State
         activeModuleType: null, // 'lkpd', 'exercise', 'remedial', 'evaluasi'
@@ -19,7 +20,8 @@ const App = {
     },
 
     // 1. Initialization
-    init: () => {
+    init: async () => {
+        if (typeof DataStore.loadRemoteModules === 'function') await DataStore.loadRemoteModules();
         const user = DataStore.getCurrentUser();
         if (user) {
             App.state.currentPath = user.role === 'guru' ? 'teacher' : 'student';
@@ -45,7 +47,10 @@ const App = {
                 root.innerHTML = Views.login('siswa');
                 break;
             case 'register':
-                root.innerHTML = Views.register();
+                root.innerHTML = Views.register('siswa');
+                break;
+            case 'register-guru':
+                root.innerHTML = Views.register('guru');
                 break;
             case 'teacher':
                 App.renderTeacherDashboard(root);
@@ -88,17 +93,19 @@ const App = {
         }
     },
 
-    handleRegister: async (event) => {
+    handleRegister: async (event, role = 'siswa') => {
         event.preventDefault();
         const nameField = document.getElementById('reg-name');
         const userField = document.getElementById('reg-username');
         const passField = document.getElementById('reg-password');
+        const subjectField = document.getElementById('reg-subject');
         if (!nameField || !userField || !passField) return;
 
-        const res = await DataStore.registerStudent(userField.value.trim().toLowerCase(), nameField.value.trim(), passField.value);
+        const subjectId = role === 'guru' ? subjectField?.value : null;
+        const res = await DataStore.registerStudent(userField.value.trim().toLowerCase(), nameField.value.trim(), passField.value, role, subjectId);
         if (res.success) {
             App.showToast('🎉 Pendaftaran berhasil! Data disinkronkan ke Supabase.', 'success');
-            App.navigateTo('login-siswa');
+            App.navigateTo(role === 'guru' ? 'login-guru' : 'login-siswa');
         } else {
             App.showToast(res.message, 'error');
         }
@@ -169,6 +176,11 @@ const App = {
     // 5. Student Dashboard Controller
     navigateStudent: (tab) => {
         App.state.studentActiveTab = tab;
+        App.render();
+    },
+
+    setStudentSubjectFilter: (subjectId) => {
+        App.state.studentSubjectFilter = subjectId;
         App.render();
     },
 
@@ -286,6 +298,47 @@ const App = {
         }
     },
 
+    toggleQuestionType: (prefix) => {
+        const type = document.getElementById(`${prefix}-type`)?.value;
+        const fields = document.querySelector(`.multiple-choice-fields-${prefix}`);
+        if (fields) fields.style.display = type === 'pilihan-ganda' ? 'block' : 'none';
+    },
+
+    questionBuilderFields: (prefix) => `
+        <div class="form-group">
+            <label for="${prefix}-type">Bentuk Soal</label>
+            <select id="${prefix}-type" class="form-control" onchange="App.toggleQuestionType('${prefix}')" required>
+                <option value="uraian">Uraian</option>
+                <option value="pilihan-ganda">Pilihan Ganda</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Pertanyaan Soal #1</label>
+            <textarea id="${prefix}-q1" class="form-control" rows="2" placeholder="Tuliskan pertanyaan soal #1..." required></textarea>
+        </div>
+        <div class="multiple-choice-fields-${prefix}" style="display:none; padding:0.75rem; background:var(--bg-main); border-radius:var(--radius-md);">
+            <label>Opsi Jawaban</label>
+            ${['a', 'b', 'c', 'd'].map(letter => `<input type="text" id="${prefix}-option-${letter}" class="form-control" style="margin-top:0.5rem;" placeholder="Opsi ${letter.toUpperCase()}">`).join('')}
+            <label for="${prefix}-correct" style="display:block; margin-top:0.75rem;">Kunci Jawaban</label>
+            <select id="${prefix}-correct" class="form-control" style="margin-top:0.5rem;">
+                <option value="">Pilih kunci jawaban</option>
+                <option value="a">Opsi A</option>
+                <option value="b">Opsi B</option>
+                <option value="c">Opsi C</option>
+                <option value="d">Opsi D</option>
+            </select>
+        </div>`,
+
+    getQuestionFormData: (prefix, questionId) => {
+        const type = document.getElementById(`${prefix}-type`)?.value || 'uraian';
+        const questionText = document.getElementById(questionId)?.value.trim() || '';
+        const options = ['a', 'b', 'c', 'd']
+            .map(letter => document.getElementById(`${prefix}-option-${letter}`)?.value.trim() || '')
+            .filter(Boolean);
+        const correctAnswer = document.getElementById(`${prefix}-correct`)?.value || '';
+        return { questionText, questionType: type, options, correctAnswer };
+    },
+
     handlePhotoUpload: (event, questionId) => {
         const file = event.target.files[0];
         if (!file) return;
@@ -311,28 +364,7 @@ const App = {
     },
 
     runSingleQuestionAICorrection: (questionId, questionText) => {
-        const card = document.getElementById(`ai-review-card-${questionId}`);
-        const scoreBadge = document.getElementById(`ai-score-badge-${questionId}`);
-        const contentDiv = document.getElementById(`ai-review-content-${questionId}`);
-
-        if (card && contentDiv) {
-            card.style.display = 'block';
-            contentDiv.innerHTML = `<div style="padding:1rem; text-align:center; color:#0284c7;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><br><span style="font-weight:600; font-size:0.85rem; margin-top:0.5rem; display:block;">AI sedang menganalisis ${App.state.moduleAnswers[questionId]?.type === 'photo' ? 'Foto Lembar Kerja' : 'Teks Uraian'} Anda...</span></div>`;
-        }
-
-        setTimeout(() => {
-            const ans = App.state.moduleAnswers[questionId] || { type: 'text', content: '' };
-            const content = ans.type === 'photo' ? ans.photoUrl : ans.content;
-
-            const result = AIService.correctQuestion(questionText, ans.type, content);
-            App.state.moduleAIReviews[questionId] = result;
-
-            if (card && scoreBadge && contentDiv) {
-                scoreBadge.innerHTML = `Skor AI: ${result.score} / 100`;
-                contentDiv.innerHTML = result.aiReview;
-            }
-            App.showToast(`Koreksi AI Selesai (Skor: ${result.score}/100)`, 'success');
-        }, 500);
+        App.showToast('Koreksi AI tersedia setelah Guru memeriksa dan memberi nilai.', 'info');
     },
 
     handleWorksheetSubmit: (event, moduleType, moduleId) => {
@@ -351,25 +383,16 @@ const App = {
         const questions = item.questions || [];
         const answersList = [];
         const reviewsList = [];
-        let totalScoreSum = 0;
 
         questions.forEach(q => {
             const ans = App.state.moduleAnswers[q.id] || { type: 'text', content: 'Jawaban dikirim.' };
             answersList.push({ questionId: q.id, ...ans });
 
-            let rev = App.state.moduleAIReviews[q.id];
-            if (!rev) {
-                const content = ans.type === 'photo' ? ans.photoUrl : ans.content;
-                rev = AIService.correctQuestion(q.questionText, ans.type, content);
-                App.state.moduleAIReviews[q.id] = rev;
-            }
-            reviewsList.push({ questionId: q.id, ...rev });
-            totalScoreSum += rev.score;
         });
 
-        const overallScore = Math.round(totalScoreSum / (questions.length || 1));
+        const overallScore = null;
         const kkm = item.kkm || 75;
-        const isBelowKKM = moduleType === 'exercise' && overallScore < kkm;
+        const isBelowKKM = false;
 
         const newSub = {
             id: 'sub-' + Date.now(),
@@ -384,16 +407,13 @@ const App = {
             perQuestionReviews: reviewsList,
             completedAt: new Date().toISOString(),
             status: 'belum_diperiksa',
+            teacherScore: null,
             teacherNotes: ''
         };
 
         DataStore.saveSubmission(newSub);
 
-        if (isBelowKKM) {
-            App.showToast(`⚠️ Nilai Latihan Anda (${overallScore}) di bawah KKM (${kkm}). Fitur Remedial telah dibuka!`, 'warning');
-        } else {
-            App.showToast(`🎉 Lembar kerja berhasil dikumpulkan! Nilai Akumulasi AI: ${overallScore}/100`, 'success');
-        }
+        App.showToast('🎉 Lembar kerja berhasil dikumpulkan dan menunggu pemeriksaan Guru.', 'success');
 
         // Navigate back to student grades / report download screen
         App.state.studentActiveTab = 'grades';
@@ -402,6 +422,31 @@ const App = {
 
     // 7. Download PDF Report Handler
     downloadPDFReport: (submissionId) => PDFReportModule.download(submissionId),
+
+    openStudentAIReviewModal: (submissionId) => {
+        const sub = DataStore.getSubmission(submissionId);
+        if (!sub || sub.studentId !== DataStore.getCurrentUser()?.id) return;
+        if (sub.status !== 'selesai_diperiksa') {
+            App.showToast('Tunggu sampai Guru selesai memeriksa.', 'info');
+            return;
+        }
+
+        if (!sub.perQuestionReviews || sub.perQuestionReviews.length === 0) {
+            const item = sub.moduleType === 'lkpd' ? DataStore.getLKPD(sub.moduleId)
+                : sub.moduleType === 'exercise' ? DataStore.getExercise(sub.moduleId)
+                : sub.moduleType === 'remedial' ? DataStore.getRemedial(sub.moduleId)
+                : DataStore.getEvaluation(sub.moduleId);
+            const questions = item?.questions || [];
+            sub.perQuestionReviews = (sub.answers || []).map(answer => {
+                const question = questions.find(q => q.id === answer.questionId);
+                const content = answer.type === 'photo' ? answer.photoUrl : answer.content;
+                return { questionId: answer.questionId, ...AIService.correctQuestion(question?.questionText || '', answer.type, content) };
+            });
+            DataStore.saveSubmission(sub);
+        }
+
+        App.openModal(`Koreksi AI - ${sub.studentName}`, Views.studentAIReviewModalContent(sub));
+    },
 
     // 8. Teacher Grade Inspection Modal
     openGradeDetailModal: (submissionId) => {
@@ -413,9 +458,16 @@ const App = {
     handleSaveTeacherReview: (event, submissionId) => {
         event.preventDefault();
         const notesInput = document.getElementById('teacher-notes-input');
+        const scoreInput = document.getElementById('teacher-score-input');
         const notes = notesInput ? notesInput.value.trim() : '';
+        const score = scoreInput ? Number(scoreInput.value) : NaN;
 
-        const res = DataStore.updateTeacherReview(submissionId, notes);
+        if (!Number.isInteger(score) || score < 0 || score > 100) {
+            App.showToast('Masukkan nilai Guru antara 0 sampai 100.', 'error');
+            return;
+        }
+
+        const res = DataStore.updateTeacherReview(submissionId, notes, score);
         if (res.success) {
             App.showToast('Catatan Guru berhasil disimpan!', 'success');
             App.closeModal();

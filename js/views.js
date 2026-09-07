@@ -78,34 +78,35 @@ const Views = {
                     </button>
                 </form>
                 
-                ${!isGuru ? `
                 <div class="auth-footer">
-                    Belum punya akun? <a onclick="App.navigateTo('register')" class="auth-link">Daftar Akun Siswa Baru</a>
+                    ${isGuru
+                        ? `Belum punya akun? <a onclick="App.navigateTo('register-guru')" class="auth-link">Daftar Akun Guru</a>`
+                        : `Belum punya akun? <a onclick="App.navigateTo('register')" class="auth-link">Daftar Akun Siswa Baru</a>`}
                 </div>
-                ` : ''}
             </div>
         </div>
         `;
     },
 
     // 3. Register Page
-    register: () => {
+    register: (role = 'siswa') => {
+        const isGuru = role === 'guru';
         return `
         <div class="auth-container">
             <div class="auth-card animate-fade-in">
-                <div class="back-to-home" onclick="App.navigateTo('login-siswa')">
+                <div class="back-to-home" onclick="App.navigateTo('${isGuru ? 'login-guru' : 'login-siswa'}')">
                     <i class="fa-solid fa-arrow-left"></i> Kembali ke Login
                 </div>
                 
                 <div class="auth-header">
-                    <div class="auth-icon siswa">
-                        <i class="fa-solid fa-user-plus"></i>
+                    <div class="auth-icon ${isGuru ? 'guru' : 'siswa'}">
+                        <i class="fa-solid ${isGuru ? 'fa-chalkboard-user' : 'fa-user-plus'}"></i>
                     </div>
-                    <h2>Pendaftaran Siswa Baru</h2>
-                    <p>Buat akun siswa untuk mengakses LKPD & Latihan Soal.</p>
+                    <h2>${isGuru ? 'Pendaftaran Guru Baru' : 'Pendaftaran Siswa Baru'}</h2>
+                    <p>${isGuru ? 'Buat akun guru untuk mengelola materi dan penilaian.' : 'Buat akun siswa untuk mengakses LKPD & Latihan Soal.'}</p>
                 </div>
                 
-                <form onsubmit="App.handleRegister(event)" class="auth-form">
+                <form onsubmit="App.handleRegister(event, '${role}')" class="auth-form">
                     <div class="form-group">
                         <label for="reg-name"><i class="fa-solid fa-address-card"></i> Nama Lengkap</label>
                         <input type="text" id="reg-name" class="form-control" placeholder="Contoh: Ahmad Rizky" required>
@@ -115,6 +116,17 @@ const Views = {
                         <label for="reg-username"><i class="fa-solid fa-user"></i> Username</label>
                         <input type="text" id="reg-username" class="form-control" placeholder="Pilih username unik" required>
                     </div>
+
+                    ${isGuru ? `
+                    <div class="form-group">
+                        <label for="reg-subject"><i class="fa-solid fa-book"></i> Mata Pelajaran Guru</label>
+                        <select id="reg-subject" class="form-control" required>
+                            <option value="" selected disabled>Pilih mata pelajaran</option>
+                            <option value="subj-math">Matematika</option>
+                            <option value="subj-science">Ilmu Pengetahuan Alam (IPA)</option>
+                        </select>
+                    </div>
+                    ` : ''}
                     
                     <div class="form-group">
                         <label for="reg-password"><i class="fa-solid fa-lock"></i> Password</label>
@@ -201,7 +213,7 @@ const Views = {
                         <i class="fa-solid fa-bars"></i>
                     </button>
                     <div class="navbar-title">
-                        <h1>Panel Manajemen Pembelajaran Guru</h1>
+                        <h1>Manajemen Pembelajaran Guru</h1>
                     </div>
                 </header>
                 
@@ -532,7 +544,7 @@ const Views = {
                         <tr>
                             <th>Tgl Selesai</th>
                             <th>Modul</th>
-                            <th>Skor AI Per-Soal</th>
+                            <th>Nilai Guru</th>
                             <th>Status Koreksi Guru</th>
                             <th>Download PDF</th>
                         </tr>
@@ -542,17 +554,22 @@ const Views = {
                         <tr>
                             <td>${new Date(s.completedAt).toLocaleDateString('id-ID')}</td>
                             <td><span class="badge badge-info">${s.moduleType.toUpperCase()}</span></td>
-                            <td><strong style="color:var(--primary-color); font-size:1.1rem">${s.overallScore}</strong> / 100</td>
+                            <td>${s.status === 'selesai_diperiksa'
+                                ? `<strong style="color:var(--primary-color); font-size:1.1rem">${s.teacherScore ?? s.overallScore}</strong> / 100`
+                                : '<span style="color:var(--text-muted)">Menunggu</span>'}</td>
                             <td>
                                 ${s.status === 'selesai_diperiksa' 
-                                    ? '<span class="badge badge-success"><i class="fa-solid fa-circle-check"></i> Selesai Diperiksa</span>' 
+                                    ? `<span class="badge badge-success"><i class="fa-solid fa-circle-check"></i> Selesai Diperiksa</span>${s.teacherNotes ? `<div style="margin-top:0.4rem; font-size:0.8rem; color:var(--text-muted);">Catatan Guru: ${s.teacherNotes}</div>` : ''}`
                                     : '<span class="badge badge-warning"><i class="fa-solid fa-clock"></i> Belum Diperiksa</span>'}
                             </td>
-                            <td>
-                                <button class="btn btn-outline btn-sm" onclick="App.downloadPDFReport('${s.id}')">
-                                    <i class="fa-solid fa-file-pdf"></i> Download PDF
+                            <td>${s.status === 'selesai_diperiksa' ? `
+                                <button class="btn btn-secondary btn-sm" onclick="App.openStudentAIReviewModal('${s.id}')">
+                                    <i class="fa-solid fa-robot"></i> Lihat Hasil & Cek AI
                                 </button>
-                            </td>
+                                <button class="btn btn-outline btn-sm" onclick="App.downloadPDFReport('${s.id}')">
+                                    <i class="fa-solid fa-file-pdf"></i> PDF
+                                </button>
+                            ` : '<span style="color:var(--text-muted); font-size:0.85rem;">Menunggu Guru</span>'}</td>
                         </tr>
                         `).join('')}
                     </tbody>
@@ -588,12 +605,13 @@ const Views = {
                 ${questions.map((q, idx) => {
                     const ans = answersState[q.id] || { type: 'text', content: '', photoUrl: '' };
                     const review = aiReviewsState[q.id];
+                    const isMultipleChoice = q.questionType === 'pilihan-ganda';
 
                     return `
                     <div class="content-card" style="margin-bottom: 1.5rem; border-left: 4px solid var(--primary-color);">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
                             <span style="font-weight:800; font-size:1.1rem; color:var(--primary-color);">Soal Nomor #${idx + 1}</span>
-                            <span style="font-size:0.8rem; color:var(--text-muted);"><i class="fa-solid fa-robot"></i> Koreksi AI Per-Soal</span>
+                            <span style="font-size:0.8rem; color:var(--text-muted);"><i class="fa-solid fa-user-check"></i> Menunggu Koreksi Guru</span>
                         </div>
 
                         <!-- Question Text -->
@@ -609,7 +627,7 @@ const Views = {
                             <div class="tab-options" style="display:flex; gap:0.5rem;">
                                 <button type="button" class="btn btn-sm ${ans.type === 'text' ? 'btn-primary' : 'btn-outline'}" 
                                         onclick="App.toggleAnswerType('${q.id}', 'text')">
-                                    <i class="fa-solid fa-font"></i> Jawaban Teks Uraian
+                                    <i class="fa-solid fa-font"></i> ${isMultipleChoice ? 'Pilih Jawaban' : 'Jawaban Teks Uraian'}
                                 </button>
                                 <button type="button" class="btn btn-sm ${ans.type === 'photo' ? 'btn-primary' : 'btn-outline'}" 
                                         onclick="App.toggleAnswerType('${q.id}', 'photo')">
@@ -618,11 +636,20 @@ const Views = {
                             </div>
                         </div>
 
-                        <!-- Text Answer Area -->
+                        <!-- Text or Multiple Choice Answer Area -->
                         <div id="input-text-area-${q.id}" style="display: ${ans.type === 'text' ? 'block' : 'none'};">
-                            <textarea class="form-control" rows="4" id="ans-text-${q.id}" 
+                            ${isMultipleChoice ? `
+                            <div style="display:grid; gap:0.5rem;">
+                                ${(q.options || []).map((option, optionIndex) => `
+                                <label style="display:flex; gap:0.5rem; align-items:center; padding:0.7rem; border:1px solid var(--border-color); border-radius:var(--radius-md); cursor:pointer;">
+                                    <input type="radio" name="ans-${q.id}" value="${option.replace(/"/g, '&quot;')}" ${ans.content === option ? 'checked' : ''} onchange="App.saveQuestionAnswer('${q.id}', 'text', this.value)">
+                                    <span>${String.fromCharCode(65 + optionIndex)}. ${option}</span>
+                                </label>
+                                `).join('')}
+                            </div>
+                            ` : `<textarea class="form-control" rows="4" id="ans-text-${q.id}" 
                                       placeholder="Ketik uraian jawaban Anda secara rinci di sini..." 
-                                      oninput="App.saveQuestionAnswer('${q.id}', 'text', this.value)">${ans.content || ''}</textarea>
+                                      oninput="App.saveQuestionAnswer('${q.id}', 'text', this.value)">${ans.content || ''}</textarea>`}
                         </div>
 
                         <!-- Photo Answer Area -->
@@ -632,6 +659,7 @@ const Views = {
                                 <p style="font-size:0.85rem; font-weight:600; margin-bottom:0.75rem;">Pilih berkas foto lembar tulisan tangan atau ambil gambar</p>
                                 <input type="file" id="ans-file-${q.id}" accept="image/*" class="form-control" style="max-width:320px; margin:0 auto;" 
                                        onchange="App.handlePhotoUpload(event, '${q.id}')">
+                                    <small style="display:block; margin-top:0.5rem; color:var(--text-muted);">Unggah foto bersifat opsional.</small>
                                 
                                 <div id="preview-container-${q.id}" style="margin-top:1rem; display:${ans.photoUrl ? 'block' : 'none'};">
                                     <img id="preview-img-${q.id}" src="${ans.photoUrl || ''}" alt="Preview Jawaban" style="max-height:220px; border-radius:var(--radius-md); border:1px solid var(--border-color); box-shadow:var(--shadow-sm);">
@@ -639,30 +667,6 @@ const Views = {
                             </div>
                         </div>
 
-                        <!-- Per-Question Instant AI Correction Button -->
-                        <div style="margin-top: 1.25rem; display:flex; justify-content:flex-end;">
-                            <button type="button" class="btn btn-secondary btn-sm" style="background:linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color:#fff; border:none; box-shadow:0 4px 10px rgba(99,102,241,0.25);" onclick="App.runSingleQuestionAICorrection('${q.id}', '${q.questionText.replace(/'/g, "\\'")}')">
-                                <i class="fa-solid fa-wand-magic-sparkles"></i> Minta Koreksi AI Soal Ini
-                            </button>
-                        </div>
-
-                        <!-- Per-Question AI Review Display Card -->
-                        <div id="ai-review-card-${q.id}" class="ai-question-card animate-fade-in" style="margin-top:1.25rem; display:${review ? 'block' : 'none'}; border-radius:var(--radius-md); padding:1.25rem;">
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; border-bottom:1px solid #bae6fd; padding-bottom:0.5rem;">
-                                <div style="display:flex; align-items:center; gap:0.5rem;">
-                                    <div style="width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#fff; display:flex; align-items:center; justify-content:center; font-size:0.9rem;">
-                                        <i class="fa-solid fa-robot"></i>
-                                    </div>
-                                    <span style="font-weight:800; color:#0369a1; font-size:0.95rem;">Analisis & Koreksi AI (Soal #${idx + 1})</span>
-                                </div>
-                                <span id="ai-score-badge-${q.id}" class="badge badge-kkm-success" style="font-size:0.9rem; font-weight:800; padding:0.35rem 0.85rem;">
-                                    Skor: ${review ? review.score : 0} / 100
-                                </span>
-                            </div>
-                            <div id="ai-review-content-${q.id}" style="font-size:0.9rem; color:#0c4a6e; line-height:1.65;">
-                                ${review ? review.aiReview : ''}
-                            </div>
-                        </div>
                     </div>
                     `;
                 }).join('')}
@@ -690,9 +694,9 @@ const Views = {
                     <h3 style="font-weight:800;">Lembar Pengerjaan: ${sub.studentName}</h3>
                     <span class="badge badge-info">${sub.moduleType.toUpperCase()}</span>
                 </div>
-                <div style="text-align:right;">
-                    <div style="font-size:0.8rem; color:var(--text-muted)">Skor AI Per-Soal:</div>
-                    <div style="font-size:1.4rem; font-weight:800; color:var(--primary-color)">${sub.overallScore} / 100</div>
+                    <div style="text-align:right;">
+                    <div style="font-size:0.8rem; color:var(--text-muted)">Nilai Guru:</div>
+                    <div style="font-size:1.4rem; font-weight:800; color:var(--primary-color)">${sub.teacherScore ?? 'Belum dinilai'}${sub.teacherScore !== null && sub.teacherScore !== undefined ? ' / 100' : ''}</div>
                 </div>
             </div>
 
@@ -713,6 +717,10 @@ const Views = {
 
             <form onsubmit="App.handleSaveTeacherReview(event, '${sub.id}')">
                 <div class="form-group">
+                    <label for="teacher-score-input"><i class="fa-solid fa-star"></i> Nilai Guru (0-100):</label>
+                    <input id="teacher-score-input" class="form-control" type="number" min="0" max="100" step="1" value="${sub.teacherScore ?? ''}" required>
+                </div>
+                <div class="form-group">
                     <label for="teacher-notes-input"><i class="fa-solid fa-pen-nib"></i> Catatan & Umpan Balik Guru:</label>
                     <textarea id="teacher-notes-input" class="form-control" rows="3" placeholder="Tuliskan apresiasi, koreksi manual, atau pesan tindak lanjut...">${sub.teacherNotes || ''}</textarea>
                 </div>
@@ -725,5 +733,20 @@ const Views = {
             </form>
         </div>
         `;
-    }
+    },
+
+    studentAIReviewModalContent: (sub) => `
+        <div style="max-height: 75vh; overflow-y: auto; padding: 0.5rem;">
+            <div style="background:var(--success-light); border:1px solid var(--success-color); padding:1rem; border-radius:var(--radius-md); margin-bottom:1rem;">
+                <strong>Nilai Guru: ${sub.teacherScore ?? sub.overallScore} / 100</strong>
+                <p style="margin-top:0.35rem;">${sub.teacherNotes || 'Tidak ada catatan tambahan.'}</p>
+            </div>
+            ${(sub.perQuestionReviews || []).map((review, index) => `
+                <div class="ai-question-card" style="padding:1rem; margin-bottom:0.75rem; border-radius:var(--radius-md);">
+                    <strong>Analisis AI Soal #${index + 1}: ${review.score} / 100</strong>
+                    <div style="margin-top:0.5rem;">${review.aiReview || ''}</div>
+                </div>
+            `).join('')}
+        </div>
+    `
 };

@@ -6,13 +6,18 @@ const LKPDModule = {
     // Views
     renderStudentView: () => {
         const user = DataStore.getCurrentUser();
-        const lkpds = DataStore.getLKPDs();
+        const filter = App.state.studentSubjectFilter || '';
+        const lkpds = DataStore.getLKPDs().filter(item => !filter || item.subjectId === filter);
         const subs = DataStore.getStudentSubmissions(user.id);
 
         return `
         <div>
             <h2><i class="fa-solid fa-file-signature"></i> 1. LKPD (Lembar Kerja Peserta Didik)</h2>
             <p style="color:var(--text-muted); margin-bottom:1.5rem;">Kirimkan jawaban Anda berupa <b>Teks</b> atau <b>Unggah Foto</b>. AI akan mengoreksi tiap soal secara langsung.</p>
+            <select class="form-control" style="max-width:280px; margin-bottom:1.25rem;" onchange="App.setStudentSubjectFilter(this.value)">
+                <option value="">Semua Mata Pelajaran</option>
+                ${DataStore.getSubjects().map(subject => `<option value="${subject.id}" ${filter === subject.id ? 'selected' : ''}>${subject.name}</option>`).join('')}
+            </select>
 
             <div class="grid-cards">
                 ${lkpds.map(l => {
@@ -44,7 +49,8 @@ const LKPDModule = {
     },
 
     renderTeacherView: () => {
-        const lkpds = DataStore.getLKPDs();
+        const subjectId = DataStore.getTeacherSubjectId();
+        const lkpds = DataStore.getLKPDs().filter(item => !subjectId || item.subjectId === subjectId);
         return `
         <div>
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
@@ -83,10 +89,7 @@ const LKPDModule = {
             <div class="form-group">
                 <label>Mata Pelajaran</label>
                 <select id="lkpd-subj" class="form-control" required>
-                    <option value="" selected disabled>Pilih mata pelajaran</option>
-                    <option value="subj-math">Matematika</option>
-                    <option value="subj-science">Ilmu Pengetahuan Alam (IPA)</option>
-                    <option value="subj-english">Bahasa Inggris</option>
+                    <option value="${DataStore.getTeacherSubjectId()}" selected>${DataStore.getTeacherSubjectName()}</option>
                 </select>
             </div>
             <div class="form-group">
@@ -97,10 +100,7 @@ const LKPDModule = {
                 <label>Deskripsi/Petunjuk</label>
                 <textarea id="lkpd-desc" class="form-control" rows="2" placeholder="Petunjuk pengerjaan..." required></textarea>
             </div>
-            <div class="form-group">
-                <label>Pertanyaan Soal #1</label>
-                <textarea id="lkpd-q1" class="form-control" rows="2" placeholder="Tuliskan pertanyaan soal #1..." required></textarea>
-            </div>
+            ${App.questionBuilderFields('lkpd')}
             <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1rem;">
                 <button type="button" class="btn btn-secondary" onclick="App.closeModal()">Batal</button>
                 <button type="submit" class="btn btn-primary">Simpan LKPD</button>
@@ -115,9 +115,13 @@ const LKPDModule = {
         const subj = document.getElementById('lkpd-subj').value;
         const title = document.getElementById('lkpd-title').value.trim();
         const desc = document.getElementById('lkpd-desc').value.trim();
-        const q1 = document.getElementById('lkpd-q1').value.trim();
+        const question = App.getQuestionFormData('lkpd', 'lkpd-q1');
+        if (question.questionType === 'pilihan-ganda' && (question.options.length < 2 || !question.correctAnswer)) {
+            App.showToast('Isi minimal dua opsi dan pilih kunci jawaban.', 'error');
+            return;
+        }
 
-        DataStore.addLKPD(subj, title, desc, [{ questionText: q1 }]);
+        DataStore.addLKPD(subj, title, desc, [question]);
         App.showToast('LKPD Baru berhasil dibuat!', 'success');
         App.closeModal();
         App.render();

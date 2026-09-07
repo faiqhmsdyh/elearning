@@ -13,9 +13,12 @@ CREATE TABLE IF NOT EXISTS public.users (
     username TEXT UNIQUE NOT NULL,
     name TEXT NOT NULL,
     role TEXT NOT NULL CHECK (role IN ('guru', 'siswa')),
+    subject_id TEXT,
     password TEXT NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS subject_id TEXT;
 
 -- 2. SUBJECTS TABLE
 CREATE TABLE IF NOT EXISTS public.subjects (
@@ -74,6 +77,7 @@ CREATE TABLE IF NOT EXISTS public.submissions (
     student_id TEXT NOT NULL,
     student_name TEXT NOT NULL,
     overall_score INT DEFAULT 0,
+    teacher_score INT,
     kkm INT DEFAULT 75,
     is_below_kkm BOOLEAN DEFAULT FALSE,
     answers JSONB DEFAULT '[]'::jsonb,
@@ -82,6 +86,8 @@ CREATE TABLE IF NOT EXISTS public.submissions (
     teacher_notes TEXT DEFAULT '',
     completed_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+ALTER TABLE public.submissions ADD COLUMN IF NOT EXISTS teacher_score INT;
 
 -- ============================================================================
 -- ROW LEVEL SECURITY (RLS) & PUBLIC ACCESS PERMISSIONS
@@ -113,6 +119,10 @@ INSERT INTO public.users (id, username, name, role, password) VALUES
 ('usr-3', 'siti', 'Siti Rahma', 'siswa', 'password123'),
 ('usr-4', 'budi', 'Budi Santoso', 'siswa', 'password123'),
 ('usr-5', 'anisa', 'Anisa Putri', 'siswa', 'password123')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.exercises (id, subject_id, title, description, kkm, questions) VALUES
+('ex-mtk-1', 'subj-math', 'Latihan Matematika: Persamaan Linear Satu Variabel', 'Latihan dasar persamaan linear satu variabel untuk siswa.', 75, '[{"id":"qex-mtk-1-1","questionText":"Tentukan nilai x dari persamaan 3x + 5 = 20 dan jelaskan langkah pengerjaannya.","sampleAnswer":"3x = 15, sehingga x = 5."}]'::jsonb)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.subjects (id, name) VALUES

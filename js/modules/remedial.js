@@ -5,8 +5,9 @@
 const RemedialModule = {
     renderStudentView: () => {
         const user = DataStore.getCurrentUser();
+        const filter = App.state.studentSubjectFilter || '';
         const remedials = DataStore.getRemedials();
-        const exercises = DataStore.getExercises();
+        const exercises = DataStore.getExercises().filter(item => !filter || item.subjectId === filter);
         const subs = DataStore.getStudentSubmissions(user.id);
 
         const activeRemedialList = [];
@@ -25,6 +26,10 @@ const RemedialModule = {
         <div>
             <h2><i class="fa-solid fa-wrench"></i> 3. Program Remedial (Khusus Nilai &lt; KKM)</h2>
             <p style="color:var(--text-muted); margin-bottom:1.5rem;">Remedial terbuka secara otomatis jika nilai Latihan Soal Anda tidak mencapai KKM.</p>
+            <select class="form-control" style="max-width:280px; margin-bottom:1.25rem;" onchange="App.setStudentSubjectFilter(this.value)">
+                <option value="">Semua Mata Pelajaran</option>
+                ${DataStore.getSubjects().map(subject => `<option value="${subject.id}" ${filter === subject.id ? 'selected' : ''}>${subject.name}</option>`).join('')}
+            </select>
 
             ${activeRemedialList.length === 0 ? `
             <div class="content-card text-center" style="padding: 3rem 1.5rem;">
@@ -71,7 +76,8 @@ const RemedialModule = {
     },
 
     renderTeacherView: () => {
-        const remedials = DataStore.getRemedials();
+        const subjectId = DataStore.getTeacherSubjectId();
+        const remedials = DataStore.getRemedials().filter(item => !subjectId || item.subjectId === subjectId);
         return `
         <div>
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
@@ -118,10 +124,7 @@ const RemedialModule = {
                 <label>Deskripsi</label>
                 <textarea id="rem-desc" class="form-control" rows="2" placeholder="Petunjuk remedial..." required></textarea>
             </div>
-            <div class="form-group">
-                <label>Soal Remedial #1</label>
-                <textarea id="rem-q1" class="form-control" rows="2" placeholder="Tuliskan pertanyaan penguatan remedial..." required></textarea>
-            </div>
+            ${App.questionBuilderFields('rem')}
             <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1rem;">
                 <button type="button" class="btn btn-secondary" onclick="App.closeModal()">Batal</button>
                 <button type="submit" class="btn btn-primary">Simpan Remedial</button>
@@ -136,10 +139,14 @@ const RemedialModule = {
         const exId = document.getElementById('rem-ex-id').value;
         const title = document.getElementById('rem-title').value.trim();
         const desc = document.getElementById('rem-desc').value.trim();
-        const q1 = document.getElementById('rem-q1').value.trim();
+        const question = App.getQuestionFormData('rem', 'rem-q1');
+        if (question.questionType === 'pilihan-ganda' && (question.options.length < 2 || !question.correctAnswer)) {
+            App.showToast('Isi minimal dua opsi dan pilih kunci jawaban.', 'error');
+            return;
+        }
 
         const ex = DataStore.getExercise(exId);
-        DataStore.addRemedial(exId, ex ? ex.subjectId : 'subj-math', title, desc, [{ questionText: q1 }]);
+        DataStore.addRemedial(exId, ex ? ex.subjectId : 'subj-math', title, desc, [question]);
         App.showToast('Paket Remedial berhasil disimpan!', 'success');
         App.closeModal();
         App.render();

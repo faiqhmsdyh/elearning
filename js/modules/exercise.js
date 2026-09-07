@@ -5,13 +5,18 @@
 const ExerciseModule = {
     renderStudentView: () => {
         const user = DataStore.getCurrentUser();
-        const exercises = DataStore.getExercises();
+        const filter = App.state.studentSubjectFilter || '';
+        const exercises = DataStore.getExercises().filter(item => !filter || item.subjectId === filter);
         const subs = DataStore.getStudentSubmissions(user.id);
 
         return `
         <div>
             <h2><i class="fa-solid fa-list-check"></i> 2. Latihan Soal (dengan KKM)</h2>
             <p style="color:var(--text-muted); margin-bottom:1.5rem;">Jika nilai akhir Anda berada di bawah KKM, sistem akan merujuk Anda ke <b>Modul Remedial</b>.</p>
+            <select class="form-control" style="max-width:280px; margin-bottom:1.25rem;" onchange="App.setStudentSubjectFilter(this.value)">
+                <option value="">Semua Mata Pelajaran</option>
+                ${DataStore.getSubjects().map(subject => `<option value="${subject.id}" ${filter === subject.id ? 'selected' : ''}>${subject.name}</option>`).join('')}
+            </select>
 
             <div class="grid-cards">
                 ${exercises.map(e => {
@@ -69,7 +74,8 @@ const ExerciseModule = {
     },
 
     renderTeacherView: () => {
-        const exercises = DataStore.getExercises();
+        const subjectId = DataStore.getTeacherSubjectId();
+        const exercises = DataStore.getExercises().filter(item => !subjectId || item.subjectId === subjectId);
         return `
         <div>
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
@@ -107,8 +113,7 @@ const ExerciseModule = {
             <div class="form-group">
                 <label>Mata Pelajaran</label>
                 <select id="ex-subj" class="form-control" required>
-                    <option value="subj-math">Matematika</option>
-                    <option value="subj-science">Ilmu Pengetahuan Alam (IPA)</option>
+                    <option value="${DataStore.getTeacherSubjectId()}" selected>${DataStore.getTeacherSubjectName()}</option>
                 </select>
             </div>
             <div class="form-group">
@@ -123,10 +128,7 @@ const ExerciseModule = {
                 <label>Deskripsi Latihan</label>
                 <textarea id="ex-desc" class="form-control" rows="2" placeholder="Keterangan latihan..." required></textarea>
             </div>
-            <div class="form-group">
-                <label>Pertanyaan Soal #1</label>
-                <textarea id="ex-q1" class="form-control" rows="2" placeholder="Tuliskan pertanyaan latihan..." required></textarea>
-            </div>
+            ${App.questionBuilderFields('ex')}
             <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1rem;">
                 <button type="button" class="btn btn-secondary" onclick="App.closeModal()">Batal</button>
                 <button type="submit" class="btn btn-primary">Simpan Latihan Soal</button>
@@ -142,9 +144,13 @@ const ExerciseModule = {
         const title = document.getElementById('ex-title').value.trim();
         const kkm = document.getElementById('ex-kkm').value;
         const desc = document.getElementById('ex-desc').value.trim();
-        const q1 = document.getElementById('ex-q1').value.trim();
+        const question = App.getQuestionFormData('ex', 'ex-q1');
+        if (question.questionType === 'pilihan-ganda' && (question.options.length < 2 || !question.correctAnswer)) {
+            App.showToast('Isi minimal dua opsi dan pilih kunci jawaban.', 'error');
+            return;
+        }
 
-        DataStore.addExercise(subj, title, desc, kkm, [{ questionText: q1 }]);
+        DataStore.addExercise(subj, title, desc, kkm, [question]);
         App.showToast('Latihan Soal berhasil ditambahkan!', 'success');
         App.closeModal();
         App.render();

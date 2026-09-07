@@ -18,7 +18,7 @@ const KEYS = {
 // Rich Seed Data
 const MOCK_DATA = {
     users: [
-        { id: 'usr-1', username: 'guru', name: 'Bpk. Hermawan, S.Pd.', role: 'guru', password: 'password123' },
+        { id: 'usr-1', username: 'guru', name: 'Bpk. Hermawan, S.Pd.', role: 'guru', subjectId: 'subj-math', password: 'password123' },
         { id: 'usr-2', username: 'siswa', name: 'Rian Hidayat', role: 'siswa', password: 'password123' },
         { id: 'usr-3', username: 'siti', name: 'Siti Rahma', role: 'siswa', password: 'password123' },
         { id: 'usr-4', username: 'budi', name: 'Budi Santoso', role: 'siswa', password: 'password123' },
@@ -367,13 +367,33 @@ initializeData();
  * DataStore Interface API
  */
 const DataStore = {
+    loadRemoteModules: async () => {
+        if (typeof SupabaseStore === 'undefined') return;
+        const [lkpd, exercises, remedial, evaluations] = await Promise.all([
+            SupabaseStore.fetchModules('lkpd'),
+            SupabaseStore.fetchModules('exercise'),
+            SupabaseStore.fetchModules('remedial'),
+            SupabaseStore.fetchModules('evaluasi')
+        ]);
+        if (Array.isArray(lkpd)) db.set(KEYS.LKPD, lkpd.map(item => ({ ...item, subjectId: item.subject_id })));
+        if (Array.isArray(exercises)) db.set(KEYS.EXERCISES, exercises.map(item => ({ ...item, subjectId: item.subject_id })));
+        if (Array.isArray(remedial)) db.set(KEYS.REMEDIAL, remedial.map(item => ({ ...item, exerciseId: item.exercise_id, subjectId: item.subject_id })));
+        if (Array.isArray(evaluations)) db.set(KEYS.EVALUATION, evaluations.map(item => ({ ...item, subjectId: item.subject_id })));
+        const submissions = await SupabaseStore.fetchSubmissions();
+        if (Array.isArray(submissions)) db.set(KEYS.SUBMISSIONS, submissions);
+    },
+
     // Auth & Users
-    registerStudent: async (username, name, password) => {
-        const users = db.get(KEYS.USERS) || [];
+    registerStudent: async (username, name, password, role = 'siswa', subjectId = null) => {
+        let users = db.get(KEYS.USERS) || [];
+        if (typeof SupabaseStore !== 'undefined') {
+            const remoteUsers = await SupabaseStore.fetchUsers();
+            if (Array.isArray(remoteUsers)) users = remoteUsers;
+        }
         if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
             return { success: false, message: 'Username sudah digunakan!' };
         }
-        const newStudent = { id: 'usr-' + Date.now(), username, name, role: 'siswa', password };
+        const newStudent = { id: 'usr-' + Date.now(), username, name, role, subjectId, password };
         if (typeof SupabaseStore !== 'undefined') {
             const syncResult = await SupabaseStore.syncUser(newStudent);
             if (!syncResult.success) {
@@ -384,6 +404,13 @@ const DataStore = {
         db.set(KEYS.USERS, users);
         return { success: true, user: newStudent };
     },
+
+    getTeacherSubjectId: () => {
+        const user = db.get(KEYS.CURRENT_USER);
+        return user?.role === 'guru' ? (user.subjectId || 'subj-math') : null;
+    },
+
+    getTeacherSubjectName: () => DataStore.getSubjectName(DataStore.getTeacherSubjectId()),
 
     loginUser: async (username, password, role) => {
         const localUsers = db.get(KEYS.USERS) || [];
@@ -425,6 +452,7 @@ const DataStore = {
     getLKPDs: () => db.get(KEYS.LKPD) || [],
     getLKPD: (id) => (db.get(KEYS.LKPD) || []).find(l => l.id === id),
     addLKPD: (subjectId, title, description, questions) => {
+        subjectId = DataStore.getTeacherSubjectId() || subjectId;
         const list = db.get(KEYS.LKPD) || [];
         const item = {
             id: 'lkpd-' + Date.now(),
@@ -435,6 +463,7 @@ const DataStore = {
         };
         list.unshift(item);
         db.set(KEYS.LKPD, list);
+        if (typeof SupabaseStore !== 'undefined') SupabaseStore.syncModule('lkpd', item);
         return item;
     },
 
@@ -442,6 +471,7 @@ const DataStore = {
     getExercises: () => db.get(KEYS.EXERCISES) || [],
     getExercise: (id) => (db.get(KEYS.EXERCISES) || []).find(e => e.id === id),
     addExercise: (subjectId, title, description, kkm, questions) => {
+        subjectId = DataStore.getTeacherSubjectId() || subjectId;
         const list = db.get(KEYS.EXERCISES) || [];
         const item = {
             id: 'ex-' + Date.now(),
@@ -453,6 +483,7 @@ const DataStore = {
         };
         list.unshift(item);
         db.set(KEYS.EXERCISES, list);
+        if (typeof SupabaseStore !== 'undefined') SupabaseStore.syncModule('exercise', item);
         return item;
     },
 
@@ -461,6 +492,7 @@ const DataStore = {
     getRemedial: (id) => (db.get(KEYS.REMEDIAL) || []).find(r => r.id === id),
     getRemedialForExercise: (exerciseId) => (db.get(KEYS.REMEDIAL) || []).find(r => r.exerciseId === exerciseId),
     addRemedial: (exerciseId, subjectId, title, description, questions) => {
+        subjectId = DataStore.getTeacherSubjectId() || subjectId;
         const list = db.get(KEYS.REMEDIAL) || [];
         const item = {
             id: 'rem-' + Date.now(),
@@ -472,6 +504,7 @@ const DataStore = {
         };
         list.unshift(item);
         db.set(KEYS.REMEDIAL, list);
+        if (typeof SupabaseStore !== 'undefined') SupabaseStore.syncModule('remedial', item);
         return item;
     },
 
@@ -488,6 +521,7 @@ const DataStore = {
     getEvaluations: () => db.get(KEYS.EVALUATION) || [],
     getEvaluation: (id) => (db.get(KEYS.EVALUATION) || []).find(e => e.id === id),
     addEvaluation: (subjectId, title, description, duration, questions) => {
+        subjectId = DataStore.getTeacherSubjectId() || subjectId;
         const list = db.get(KEYS.EVALUATION) || [];
         const item = {
             id: 'eval-' + Date.now(),
@@ -499,6 +533,7 @@ const DataStore = {
         };
         list.unshift(item);
         db.set(KEYS.EVALUATION, list);
+        if (typeof SupabaseStore !== 'undefined') SupabaseStore.syncModule('evaluasi', item);
         return item;
     },
 
@@ -520,11 +555,14 @@ const DataStore = {
         return submission;
     },
 
-    updateTeacherReview: (submissionId, notes) => {
+    updateTeacherReview: (submissionId, notes, score) => {
         const list = db.get(KEYS.SUBMISSIONS) || [];
         const sub = list.find(s => s.id === submissionId);
         if (sub) {
             sub.status = 'selesai_diperiksa';
+            sub.teacherScore = score;
+            sub.overallScore = score;
+            sub.isBelowKKM = sub.moduleType === 'exercise' && score < (sub.kkm || 75);
             sub.teacherNotes = notes;
             db.set(KEYS.SUBMISSIONS, list);
             if (typeof SupabaseStore !== 'undefined') SupabaseStore.syncSubmission(sub);
